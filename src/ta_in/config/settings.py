@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     budget_usd: float = Field(default=1.0, gt=0.0)
     cache_mode: Literal["off", "record", "replay"] = "off"
     cache_dir: Path = Path(".llm_cache")
+    trace_dir: Path = Path("traces")
 
 
 def _env_name(field: str) -> str:

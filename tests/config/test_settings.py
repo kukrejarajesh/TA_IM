@@ -150,3 +150,10 @@ def test_invalid_cache_mode_fails_naming_the_field(monkeypatch: pytest.MonkeyPat
     with pytest.raises(SettingsError) as exc:
         load_settings()
     assert "cache_mode" in str(exc.value)
+
+
+def test_trace_dir_default_and_override(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ANTHROPIC_API_KEY", FAKE_KEY)
+    assert load_settings().trace_dir == Path("traces")
+    monkeypatch.setenv("TA_TRACE_DIR", "out/traces")
+    assert load_settings().trace_dir == Path("out/traces")

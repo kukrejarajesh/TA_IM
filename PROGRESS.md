@@ -3,11 +3,11 @@
 ## Last session
 
 - Date: 2026-10-31
-- Story: S0.4 - response cache with record and replay
-- Summary: `ta_in.llm.cache` (`cache_key`, `ResponseCache`, `CacheMode` off/record/replay, `CacheMiss`,
-  `CacheError`). `LLMClient` replays from disk without building an SDK client; replayed calls are
-  `cached=True` and cost 0. Settings `TA_CACHE_MODE` / `TA_CACHE_DIR`. 19 cache tests in
-  `tests/llm/test_cache.py`; LLM test fakes moved to `tests/llm/helpers.py`. `scripts/verify.py` passes.
+- Story: S0.5 - run trace
+- Summary: `ta_in.llm.trace` (`TraceWriter` = one JSONL file per run, `summarize`, `main`). `LLMClient`
+  takes `trace=` and `complete(..., agent=)`; errors and budget breaches are traced too.
+  `uv run trace-summary <run-id-or-path>` prints calls, tokens, cost and time per agent.
+  16 tests in `tests/llm/test_trace.py`. `scripts/verify.py` passes.
 
 ## Done
 
@@ -15,11 +15,12 @@
 - Feature list schema tests and `passes` guard hook
 - S0.2: settings from .env with Pydantic (merged to main, PR #2; default budget $1)
 - S0.3: LLM client wrapper with retry, cost records and budget stop (merged, PR #3)
-- S0.4: response cache with record and replay (branch `s0.4-response-cache`, PR pending)
+- S0.4: response cache with record and replay (merged, PR #4)
+- S0.5: run trace and trace-summary (branch `s0.5-run-trace`, PR pending)
 
 ## Next
 
-- S0.5: run trace (next in list order; S0.4 was done ahead of it at the user's request).
+- S0.8 (next feature with passes=false in list order; check `depends_on` first).
 
 ## Open issues
 
@@ -30,3 +31,4 @@
 - `Settings.temperature` is not sent to the API: sampling params are rejected on current models (400).
 - `pricing.py` prices are first-party list rates as of 2026-10; cache-read/creation tokens not costed yet.
 - Cache stores response text and token counts only; tool-use responses are not cached yet.
+- Trace `tool_calls` is always `[]` until `complete()` returns tool-use blocks. Trace time is summed call latency, not wall-clock.

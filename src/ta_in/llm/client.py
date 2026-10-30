@@ -13,6 +13,7 @@ from pydantic import BaseModel, ConfigDict
 from ta_in.config import Settings
 from ta_in.llm.cache import CacheEntry, CacheMiss, CacheMode, ResponseCache, cache_key
 from ta_in.llm.pricing import cost_usd
+from ta_in.llm.trace import TraceWriter
 
 log = logging.getLogger(__name__)
 
@@ -58,6 +59,8 @@ class LLMClient:
         sleep: Callable[[float], None] = time.sleep,
         cache: ResponseCache | None = None,
         cache_mode: CacheMode | None = None,
+        trace: TraceWriter | None = None,
+        clock: Callable[[], float] = time.perf_counter,
     ) -> None:
         self._settings = settings
         self._budget_usd = settings.budget_usd
@@ -66,6 +69,9 @@ class LLMClient:
         self._sleep = sleep
         self._cache = cache or ResponseCache(settings.cache_dir)
         self._cache_mode = cache_mode if cache_mode is not None else CacheMode(settings.cache_mode)
+        self._trace = trace
+        self._clock = clock
+        self._last_text: str | None = None
         self.records: list[CallRecord] = []
 
     @property
@@ -79,6 +85,43 @@ class LLMClient:
         messages: list[dict[str, Any]],
         max_tokens: int = 16000,
         tools: list[dict[str, Any]] | None = None,
+        agent: str = "default",
+    ) -> str:
+        records_before = len(self.records)
+        self._last_text = None
+        error: str | None = None
+        started = self._clock()
+        try:
+            return self._complete(model, system, messages, max_tokens, tools)
+        except Exception as err:
+            error = type(err).__name__
+            raise
+        finally:
+            if self._trace is not None:
+                rec = self.records[-1] if len(self.records) > records_before else None
+                self._trace.log_call(
+                    agent=agent,
+                    model=model,
+                    system=system,
+                    messages=messages,
+                    response=self._last_text,
+                    tool_calls=[],  # complete() returns text only for now
+                    input_tokens=rec.input_tokens if rec else 0,
+                    output_tokens=rec.output_tokens if rec else 0,
+                    cost_usd=rec.cost_usd if rec else 0.0,
+                    latency_s=self._clock() - started,
+                    cached=rec.cached if rec else False,
+                    attempts=rec.attempts if rec else 0,
+                    error=error,
+                )
+
+    def _complete(
+        self,
+        model: str,
+        system: str,
+        messages: list[dict[str, Any]],
+        max_tokens: int,
+        tools: list[dict[str, Any]] | None,
     ) -> str:
         key = cache_key(model, system, messages, tools, max_tokens)
         if self._cache_mode is CacheMode.REPLAY:
@@ -100,6 +143,7 @@ class LLMClient:
             request["tools"] = tools
         response, attempts = self._call_with_retry(**request)
         text = "".join(b.text for b in response.content if b.type == "text")
+        self._last_text = text
         input_tokens = int(response.usage.input_tokens)
         output_tokens = int(response.usage.output_tokens)
         record = CallRecord(
@@ -141,6 +185,7 @@ class LLMClient:
                 cached=True,
             )
         )
+        self._last_text = entry.text
         log.info("llm replay model=%s key=%s", model, key[:12])
         return entry.text
 
