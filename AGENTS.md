@@ -20,7 +20,7 @@ Python rebuild of TradingAgents v0.7.0 for NSE stocks. Paper trading only.
 - `scripts/` - `verify.py`, `init.py` and their shell wrappers
 - `.claude/rules/` - path-scoped agent rules
 - `PROGRESS.md` - session log: last session, done, next, open issues
-- `feature_list.json` - story/feature checklist with `passes` flags (created after S0.1)
+- `feature_list.json` - story/feature checklist with `passes` flags (only `passes` may change; guarded by pre-commit)
 - `.env.example` - env var names only; real values live in untracked `.env`
 
 ## Hard rules

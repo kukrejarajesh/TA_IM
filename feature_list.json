@@ -1,0 +1,879 @@
+{
+  "project": "ta_in: TradingAgents v0.7.0 rebuild for NSE stocks",
+  "baseline": "TradingAgents v0.7.0",
+  "rules": [
+    "Work on features in list order; skip none.",
+    "Only the 'passes' field may be changed by an agent, and only after verify passes.",
+    "Never edit titles, acceptance criteria, requirements or dependencies; ask the human instead.",
+    "A feature passes only when its test file exists, covers every acceptance criterion, and verify is green."
+  ],
+  "defaults_pending_decision": {
+    "fixture_set": "placeholder tickers and dates until chosen",
+    "holding_period_trading_days": 20
+  },
+  "features": [
+    {
+      "id": "S0.1",
+      "epic": "E0",
+      "sprint": 1,
+      "title": "Repo skeleton with harness: pyproject, src layout, ruff, mypy, pytest, verify and init scripts, AGENTS.md, CLAUDE.md, rules",
+      "acceptance": [
+        "verify passes locally on Windows and in GitHub Actions",
+        "CLAUDE.md states how to run checks and the point-in-time rule"
+      ],
+      "requirements": [
+        "N8",
+        "N9",
+        "N10"
+      ],
+      "size": "M",
+      "test": "tests/test_smoke.py",
+      "depends_on": [],
+      "passes": true
+    },
+    {
+      "id": "S0.2",
+      "epic": "E0",
+      "sprint": 1,
+      "title": "Settings from .env with Pydantic: provider, quick and deep models, debate rounds, risk rounds, temperature, budget",
+      "acceptance": [
+        "Invalid or missing settings fail at start-up with a clear message",
+        "API keys never appear in logs or traces"
+      ],
+      "requirements": [
+        "O1",
+        "N7"
+      ],
+      "size": "S",
+      "test": "tests/config/test_settings.py",
+      "depends_on": [
+        "S0.1"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S0.3",
+      "epic": "E0",
+      "sprint": 1,
+      "title": "LLM client wrapper over the Anthropic Messages API with retry, backoff, token and cost logging, and a budget stop",
+      "acceptance": [
+        "Mocked transient error then success is retried with backoff",
+        "A budget breach raises BudgetExceeded",
+        "Every call records tokens and cost"
+      ],
+      "requirements": [
+        "N3",
+        "N5"
+      ],
+      "size": "M",
+      "test": "tests/llm/test_client.py",
+      "depends_on": [
+        "S0.2"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S0.5",
+      "epic": "E0",
+      "sprint": 1,
+      "title": "Run trace: one JSONL file per run with agent, prompt, response, tool calls, tokens, cost and latency, plus a summary script",
+      "acceptance": [
+        "Each run writes exactly one trace file",
+        "trace-summary <run> prints cost and time per agent"
+      ],
+      "requirements": [
+        "N4"
+      ],
+      "size": "S",
+      "test": "tests/llm/test_trace.py",
+      "depends_on": [
+        "S0.3"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S0.4",
+      "epic": "E0",
+      "sprint": 2,
+      "title": "Response cache with record and replay modes, keyed by a hash of model, system prompt, messages, tools and parameters",
+      "acceptance": [
+        "Replay mode makes zero network calls",
+        "A replayed run produces byte-identical output to the recorded run"
+      ],
+      "requirements": [
+        "N2"
+      ],
+      "size": "M",
+      "test": "tests/llm/test_cache.py",
+      "depends_on": [
+        "S0.3"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S0.8",
+      "epic": "E0",
+      "sprint": 2,
+      "title": "Shared decision models: five-tier rating enum copied from TradingAgents v0.7.0, plus Decision and related Pydantic types",
+      "acceptance": [
+        "Rating labels match the TradingAgents v0.7.0 code, with the source file noted in a comment",
+        "All agents import these types"
+      ],
+      "requirements": [
+        "K2"
+      ],
+      "size": "S",
+      "test": "tests/schemas/test_decision.py",
+      "depends_on": [
+        "S0.1"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S1.1",
+      "epic": "E1",
+      "sprint": 2,
+      "title": "DataProvider interface where every method takes as_of, plus a guard raising PointInTimeError on any later-dated record",
+      "acceptance": [
+        "A later-dated record passed through the guard raises PointInTimeError"
+      ],
+      "requirements": [
+        "N1"
+      ],
+      "size": "S",
+      "test": "tests/data/test_point_in_time.py",
+      "depends_on": [
+        "S0.1"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S1.2",
+      "epic": "E1",
+      "sprint": 2,
+      "title": "Daily OHLCV for .NS tickers via yfinance up to as_of, cached locally",
+      "acceptance": [
+        "No bar after as_of is ever returned",
+        "Market holidays and missing days are handled",
+        "A second call is served from the cache"
+      ],
+      "requirements": [
+        "D1"
+      ],
+      "size": "M",
+      "test": "tests/data/test_prices.py",
+      "depends_on": [
+        "S1.1"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S1.6",
+      "epic": "E1",
+      "sprint": 2,
+      "title": "Company identity (name, sector, exchange) resolved from the ticker and cached",
+      "acceptance": [
+        "The same ticker always gives the same identity",
+        "An unknown ticker fails before any agent runs"
+      ],
+      "requirements": [
+        "D5"
+      ],
+      "size": "S",
+      "test": "tests/data/test_identity.py",
+      "depends_on": [
+        "S1.1"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S1.3",
+      "epic": "E1",
+      "sprint": 3,
+      "title": "Indicators from prices: RSI, MACD, Bollinger Bands, ATR, SMA, EMA, VWMA",
+      "acceptance": [
+        "Unit tests match hand-calculated values on a small fixed series"
+      ],
+      "requirements": [
+        "D2"
+      ],
+      "size": "M",
+      "test": "tests/data/test_indicators.py",
+      "depends_on": [
+        "S1.2"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S1.4",
+      "epic": "E1",
+      "sprint": 3,
+      "title": "Dated company and market news up to as_of, deduplicated, as typed NewsItem (title, source, published time, URL, summary)",
+      "acceptance": [
+        "Items dated after as_of are dropped and logged",
+        "Duplicates are removed",
+        "Empty results return an explicit empty list"
+      ],
+      "requirements": [
+        "D3"
+      ],
+      "size": "M",
+      "test": "tests/data/test_news.py",
+      "depends_on": [
+        "S1.1"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S1.5",
+      "epic": "E1",
+      "sprint": 3,
+      "title": "Fundamentals from yfinance for current-date runs; a typed Withheld result with the reason for past dates",
+      "acceptance": [
+        "A past-dated call returns Withheld, never statements",
+        "A current-date call returns income statement, balance sheet and cash flow"
+      ],
+      "requirements": [
+        "D4"
+      ],
+      "size": "S",
+      "test": "tests/data/test_fundamentals.py",
+      "depends_on": [
+        "S1.1"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S1.7",
+      "epic": "E1",
+      "sprint": 3,
+      "title": "Verified price snapshot (last close, 52-week high and low, recent returns) for grounding",
+      "acceptance": [
+        "Snapshot values match the price series exactly",
+        "Agents receive the snapshot in their context"
+      ],
+      "requirements": [
+        "D6"
+      ],
+      "size": "S",
+      "test": "tests/data/test_snapshot.py",
+      "depends_on": [
+        "S1.2"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S1.8",
+      "epic": "E1",
+      "sprint": 4,
+      "title": "Fixture set file (tickers and dates) and a freeze-fixtures command that saves all data snapshots to the repo",
+      "acceptance": [
+        "Snapshots exist for every fixture cell",
+        "Tests load only from snapshots and pass with the network off"
+      ],
+      "requirements": [
+        "N2"
+      ],
+      "size": "M",
+      "test": "tests/fixtures/test_frozen_fixtures.py",
+      "depends_on": [
+        "S1.2",
+        "S1.3",
+        "S1.4",
+        "S1.5",
+        "S1.6",
+        "S1.7"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S0.7",
+      "epic": "E0",
+      "sprint": 4,
+      "title": "TradingAgents v0.7.0 baseline in its own virtual environment, run twice per fixture cell with the same two models",
+      "acceptance": [
+        "Decisions for every cell and both runs are stored as JSON",
+        "The run-to-run agreement band is computed and recorded"
+      ],
+      "requirements": [
+        "Eval"
+      ],
+      "size": "L",
+      "test": "tests/eval/test_baseline.py",
+      "depends_on": [
+        "S1.8",
+        "S0.8"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S2.1",
+      "epic": "E2",
+      "sprint": 4,
+      "title": "Typed AgentState in Pydantic: identity, snapshot, each analyst report, debate histories, plan, proposal, risk history, decision",
+      "acceptance": [
+        "Each agent can only write its own fields",
+        "State serialises to JSON and back without loss"
+      ],
+      "requirements": [
+        "A4"
+      ],
+      "size": "M",
+      "test": "tests/state/test_agent_state.py",
+      "depends_on": [
+        "S0.8",
+        "S1.7"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S2.2",
+      "epic": "E2",
+      "sprint": 5,
+      "title": "Generic agent loop: call Claude with tools, run tool calls, continue on tool_use, stop on end_turn, step limit as a safety net",
+      "acceptance": [
+        "A scripted fake model covers multi-step tool use",
+        "A tool error is returned to the model as a structured error",
+        "Hitting the step limit stops cleanly"
+      ],
+      "requirements": [
+        "A1",
+        "A2",
+        "A3"
+      ],
+      "size": "M",
+      "test": "tests/agents/test_loop.py",
+      "depends_on": [
+        "S0.3",
+        "S0.4",
+        "S2.1"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S2.3",
+      "epic": "E2",
+      "sprint": 5,
+      "title": "Market analyst with price and indicator tools, choosing up to 8 indicators and writing a report",
+      "acceptance": [
+        "Produces a report for every fixture cell",
+        "Every price figure in the report matches the snapshot"
+      ],
+      "requirements": [
+        "A1",
+        "D6"
+      ],
+      "size": "M",
+      "test": "tests/agents/test_market_analyst.py",
+      "depends_on": [
+        "S2.2",
+        "S1.3"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S2.6",
+      "epic": "E2",
+      "sprint": 5,
+      "title": "Run selected analysts in parallel; a failed analyst records an explicit gap",
+      "acceptance": [
+        "Analysts run concurrently",
+        "--analysts market,news runs only those two",
+        "A forced failure leaves a visible gap, not a crash"
+      ],
+      "requirements": [
+        "A4",
+        "N5"
+      ],
+      "size": "S",
+      "test": "tests/agents/test_parallel_analysts.py",
+      "depends_on": [
+        "S2.3"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S2.7",
+      "epic": "E2",
+      "sprint": 5,
+      "title": "Insufficient-data rule: analysts flag thin evidence instead of analysing it",
+      "acceptance": [
+        "With fewer than the configured minimum of news items, the report carries an insufficient_data flag"
+      ],
+      "requirements": [
+        "A5"
+      ],
+      "size": "S",
+      "test": "tests/agents/test_insufficient_data.py",
+      "depends_on": [
+        "S2.3"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S2.4",
+      "epic": "E2",
+      "sprint": 6,
+      "title": "News analyst covering company and macro news",
+      "acceptance": [
+        "The report cites only items dated on or before as_of, each with its source"
+      ],
+      "requirements": [
+        "A2"
+      ],
+      "size": "M",
+      "test": "tests/agents/test_news_analyst.py",
+      "depends_on": [
+        "S2.2",
+        "S1.4"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S2.5",
+      "epic": "E2",
+      "sprint": 6,
+      "title": "Fundamentals analyst using statements, or stating clearly that fundamentals were withheld",
+      "acceptance": [
+        "Past-dated cells say withheld and make no fundamental claims"
+      ],
+      "requirements": [
+        "A3"
+      ],
+      "size": "S",
+      "test": "tests/agents/test_fundamentals_analyst.py",
+      "depends_on": [
+        "S2.2",
+        "S1.5"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S2.8",
+      "epic": "E2",
+      "sprint": 6,
+      "title": "Analyst evaluation: hand-score 10 reports on a rubric, then an automated rubric scorer compared with TradingAgents reports",
+      "acceptance": [
+        "Hand and automated scores are recorded side by side",
+        "The automated scorer's agreement with hand scores is reported"
+      ],
+      "requirements": [
+        "Eval"
+      ],
+      "size": "M",
+      "test": "tests/eval/test_analyst_rubric.py",
+      "depends_on": [
+        "S2.3",
+        "S2.4",
+        "S2.5",
+        "S0.7"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S3.1",
+      "epic": "E3",
+      "sprint": 6,
+      "title": "Bull and bear researchers read the analyst reports and take turns for the configured number of rounds",
+      "acceptance": [
+        "Each turn answers the other side's last argument",
+        "Full debate history is stored in state",
+        "The quick-tier model is used"
+      ],
+      "requirements": [
+        "R1"
+      ],
+      "size": "M",
+      "test": "tests/agents/test_researchers.py",
+      "depends_on": [
+        "S2.6"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S4.2",
+      "epic": "E4",
+      "sprint": 7,
+      "title": "Structured output through tool use with a JSON schema, validated, retried once with the error message, then a loud failure",
+      "acceptance": [
+        "A malformed fake response triggers exactly one retry",
+        "A second failure raises, with the raw output saved to the trace"
+      ],
+      "requirements": [
+        "K3"
+      ],
+      "size": "M",
+      "test": "tests/llm/test_structured_output.py",
+      "depends_on": [
+        "S0.3",
+        "S0.5"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S3.2",
+      "epic": "E3",
+      "sprint": 7,
+      "title": "Research manager on the deep tier judges the debate and returns a structured InvestmentPlan",
+      "acceptance": [
+        "Output validates against the schema on every fixture cell",
+        "The plan quotes at least one point from each side"
+      ],
+      "requirements": [
+        "R2",
+        "K3"
+      ],
+      "size": "M",
+      "test": "tests/agents/test_research_manager.py",
+      "depends_on": [
+        "S3.1",
+        "S4.2"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S3.3",
+      "epic": "E3",
+      "sprint": 7,
+      "title": "Debate rounds configurable from 0 to 3, with deterministic replay",
+      "acceptance": [
+        "0, 1 and 2 rounds each run end to end",
+        "Replayed runs match recorded runs exactly"
+      ],
+      "requirements": [
+        "R1",
+        "N2"
+      ],
+      "size": "S",
+      "test": "tests/agents/test_debate_rounds.py",
+      "depends_on": [
+        "S3.2"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S4.1",
+      "epic": "E4",
+      "sprint": 7,
+      "title": "Trader turns the investment plan into a structured TradeProposal: action, rating, rationale, evidence references",
+      "acceptance": [
+        "Every proposal validates",
+        "Each evidence reference points to a real field in state"
+      ],
+      "requirements": [
+        "T1"
+      ],
+      "size": "M",
+      "test": "tests/agents/test_trader.py",
+      "depends_on": [
+        "S3.2",
+        "S4.2"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S4.3",
+      "epic": "E4",
+      "sprint": 8,
+      "title": "Aggressive, neutral and conservative risk analysts debate the proposal for the configured number of rounds",
+      "acceptance": [
+        "Each analyst responds to the other two",
+        "History is stored in state",
+        "0 and 1 rounds both work"
+      ],
+      "requirements": [
+        "K1"
+      ],
+      "size": "M",
+      "test": "tests/agents/test_risk_team.py",
+      "depends_on": [
+        "S4.1"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S4.4",
+      "epic": "E4",
+      "sprint": 8,
+      "title": "Portfolio manager on the deep tier returns the final Decision on the five-tier scale",
+      "acceptance": [
+        "The decision validates on every fixture cell",
+        "Its rationale cites the risk discussion"
+      ],
+      "requirements": [
+        "K2"
+      ],
+      "size": "M",
+      "test": "tests/agents/test_portfolio_manager.py",
+      "depends_on": [
+        "S4.3",
+        "S0.8"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S4.5",
+      "epic": "E4",
+      "sprint": 8,
+      "title": "propagate(ticker, date) runs the whole pipeline and returns state and decision",
+      "acceptance": [
+        "One fixture cell runs end to end in replay mode inside CI",
+        "Total cost and time are reported"
+      ],
+      "requirements": [
+        "A1",
+        "A2",
+        "A3",
+        "R1",
+        "R2",
+        "T1",
+        "K1",
+        "K2"
+      ],
+      "size": "M",
+      "test": "tests/replay/test_propagate.py",
+      "depends_on": [
+        "S4.4",
+        "S2.6",
+        "S3.3"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S5.1",
+      "epic": "E5",
+      "sprint": 8,
+      "title": "Command line: run --ticker --date --analysts --rounds, plus --replay",
+      "acceptance": [
+        "Runs a fixture cell from the shell",
+        "Missing or invalid flags give a clear error",
+        "--replay makes no network calls"
+      ],
+      "requirements": [
+        "C1"
+      ],
+      "size": "S",
+      "test": "tests/cli/test_cli.py",
+      "depends_on": [
+        "S4.5"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S5.2",
+      "epic": "E5",
+      "sprint": 9,
+      "title": "Save each agent's report as Markdown and the final decision as JSON under results/<ticker>/<date>/<run id>/",
+      "acceptance": [
+        "Every run writes the full set of files",
+        "An index file lists runs with their cost"
+      ],
+      "requirements": [
+        "C2"
+      ],
+      "size": "S",
+      "test": "tests/reports/test_reports.py",
+      "depends_on": [
+        "S5.1"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S5.3",
+      "epic": "E5",
+      "sprint": 9,
+      "title": "Claim checker: match every number in the proposal and decision to the snapshot or analyst reports within a tolerance",
+      "acceptance": [
+        "Unmatched numbers are listed in the run output",
+        "A seeded false figure is caught in a test"
+      ],
+      "requirements": [
+        "C3"
+      ],
+      "size": "M",
+      "test": "tests/reports/test_claim_checker.py",
+      "depends_on": [
+        "S4.5"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S7.1",
+      "epic": "E7",
+      "sprint": 9,
+      "title": "Grid runner over tickers and dates that skips completed cells and stops at the budget",
+      "acceptance": [
+        "An interrupted grid resumes without rerunning finished cells",
+        "The budget stop leaves a clean partial result"
+      ],
+      "requirements": [
+        "B1",
+        "N3"
+      ],
+      "size": "M",
+      "test": "tests/backtest/test_grid_runner.py",
+      "depends_on": [
+        "S4.5"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S7.2",
+      "epic": "E7",
+      "sprint": 9,
+      "title": "Scoring: entry at the first close after the decision date, return over the holding period, alpha against the Nifty 50, grouped by rating",
+      "acceptance": [
+        "Two cells match a hand calculation",
+        "Results are grouped by rating with hit rate and mean alpha"
+      ],
+      "requirements": [
+        "B2",
+        "B3"
+      ],
+      "size": "M",
+      "test": "tests/backtest/test_scoring.py",
+      "depends_on": [
+        "S7.1",
+        "S1.2"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S7.3",
+      "epic": "E7",
+      "sprint": 10,
+      "title": "Parity report comparing our ratings with the TradingAgents baseline against its agreement band",
+      "acceptance": [
+        "The report states the band, our agreement with TradingAgents and our own run-to-run agreement"
+      ],
+      "requirements": [
+        "Eval"
+      ],
+      "size": "M",
+      "test": "tests/eval/test_parity_report.py",
+      "depends_on": [
+        "S7.1",
+        "S0.7"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S6.1",
+      "epic": "E6",
+      "sprint": 10,
+      "title": "Append each final decision to a memory log with ticker, date, rating, rationale and run id",
+      "acceptance": [
+        "Every completed run adds one entry",
+        "A crashed run adds none"
+      ],
+      "requirements": [
+        "M1"
+      ],
+      "size": "S",
+      "test": "tests/memory/test_log.py",
+      "depends_on": [
+        "S4.5"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S6.2",
+      "epic": "E6",
+      "sprint": 10,
+      "title": "Settle decisions whose holding period has passed: realised return and alpha against the Nifty 50",
+      "acceptance": [
+        "Settled values match a hand calculation for two cells",
+        "Unsettled decisions stay pending"
+      ],
+      "requirements": [
+        "M2"
+      ],
+      "size": "M",
+      "test": "tests/memory/test_settlement.py",
+      "depends_on": [
+        "S6.1",
+        "S7.2"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S6.3",
+      "epic": "E6",
+      "sprint": 10,
+      "title": "Quick-tier reflection: one short paragraph per settled decision on what worked or did not",
+      "acceptance": [
+        "Each settled entry gains a reflection",
+        "Reflections are cached for replay"
+      ],
+      "requirements": [
+        "M3"
+      ],
+      "size": "S",
+      "test": "tests/memory/test_reflection.py",
+      "depends_on": [
+        "S6.2"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S6.4",
+      "epic": "E6",
+      "sprint": 11,
+      "title": "Portfolio manager reads recent same-ticker decisions and lessons, using only entries settled before the run's as_of",
+      "acceptance": [
+        "A decision settled after as_of is never shown to the portfolio manager"
+      ],
+      "requirements": [
+        "M3",
+        "N1"
+      ],
+      "size": "M",
+      "test": "tests/memory/test_memory_point_in_time.py",
+      "depends_on": [
+        "S6.3",
+        "S4.4"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S7.4",
+      "epic": "E7",
+      "sprint": 11,
+      "title": "Ablation configs A to D as switches, run over the full fixture set twice each",
+      "acceptance": [
+        "All four configs complete",
+        "Results include score, variance, claim-check failures, cost and latency"
+      ],
+      "requirements": [
+        "Eval"
+      ],
+      "size": "M",
+      "test": "tests/eval/test_ablations.py",
+      "depends_on": [
+        "S7.2",
+        "S5.3",
+        "S6.4"
+      ],
+      "passes": false
+    },
+    {
+      "id": "S7.5",
+      "epic": "E7",
+      "sprint": 11,
+      "title": "Evaluation report generator writing all results as Markdown tables with known limitations",
+      "acceptance": [
+        "One command regenerates the full report from stored results with no model calls"
+      ],
+      "requirements": [
+        "Eval"
+      ],
+      "size": "S",
+      "test": "tests/eval/test_eval_report.py",
+      "depends_on": [
+        "S7.3",
+        "S7.4"
+      ],
+      "passes": false
+    }
+  ]
+}
