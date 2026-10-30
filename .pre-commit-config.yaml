@@ -18,3 +18,9 @@ repos:
         language: system
         pass_filenames: false
         types: [python]
+      - id: feature-list-guard
+        name: feature_list.json guard
+        entry: uv run python scripts/check_feature_list.py
+        language: system
+        pass_filenames: false
+        files: ^feature_list\.json$
