@@ -3,16 +3,16 @@
 ## Last session
 
 - Date: 2026-10-31
-- Story: S0.2 - settings from .env with Pydantic
+- Story: S0.2 - settings from .env with Pydantic (merged, PR #2)
 - Summary: `ta_in.config` with `Settings` (pydantic-settings, `SecretStr` key, `TA_` prefix) and
   `load_settings()`, which raises `SettingsError` listing each bad field without echoing values.
-  17 offline tests in `tests/config/test_settings.py`. `scripts/verify.py` passes locally.
+  Default budget is $1. 17 offline tests in `tests/config/test_settings.py`. `scripts/verify.py` passes locally.
 
 ## Done
 
 - S0.1: repo skeleton with harness
 - Feature list schema tests and `passes` guard hook
-- S0.2: settings from .env with Pydantic (on branch `s0.2-settings`, PR pending)
+- S0.2: settings from .env with Pydantic (merged to main, PR #2; default budget $1)
 
 ## Next
 
