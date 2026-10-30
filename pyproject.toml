@@ -9,6 +9,9 @@ dependencies = [
     "pydantic-settings",
 ]
 
+[project.scripts]
+trace-summary = "ta_in.llm.trace:main"
+
 [dependency-groups]
 dev = [
     "mypy",

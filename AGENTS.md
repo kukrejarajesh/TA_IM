@@ -11,12 +11,13 @@ Python rebuild of TradingAgents v0.7.0 for NSE stocks. Paper trading only.
 - Auto-fix lint: `uv run ruff check --fix`
 - Single test: `uv run pytest tests/test_x.py::test_name`
 - Live tests (network, opt-in only): `uv run pytest -m live`
+- Run cost/time per agent: `uv run trace-summary <run-id-or-path>`
 
 ## Repo map
 
 - `src/ta_in/` - the package (src layout)
 - `src/ta_in/config/` - `Settings` / `load_settings()`; env + `.env`, secrets as `SecretStr`
-- `src/ta_in/llm/` - `LLMClient` (retry/backoff, token+cost records, `BudgetExceeded`), `pricing.py`, `cache.py` (record/replay)
+- `src/ta_in/llm/` - `LLMClient` (retry/backoff, token+cost records, `BudgetExceeded`), `pricing.py`, `cache.py` (record/replay), `trace.py` (one JSONL per run)
 - `src/ta_in/data/` - data access; point-in-time rules apply (see `.claude/rules/data.md`)
 - `tests/` - offline pytest suite; `live` marker for network tests
 - `scripts/` - `verify.py`, `init.py` and their shell wrappers
