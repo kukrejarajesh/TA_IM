@@ -16,6 +16,7 @@ Python rebuild of TradingAgents v0.7.0 for NSE stocks. Paper trading only.
 
 - `src/ta_in/` - the package (src layout)
 - `src/ta_in/config/` - `Settings` / `load_settings()`; env + `.env`, secrets as `SecretStr`
+- `src/ta_in/llm/` - `LLMClient` (retry/backoff, token+cost records, `BudgetExceeded`), `pricing.py`
 - `src/ta_in/data/` - data access; point-in-time rules apply (see `.claude/rules/data.md`)
 - `tests/` - offline pytest suite; `live` marker for network tests
 - `scripts/` - `verify.py`, `init.py` and their shell wrappers
