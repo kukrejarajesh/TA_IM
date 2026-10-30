@@ -70,7 +70,7 @@
       "depends_on": [
         "S0.2"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "S0.5",
