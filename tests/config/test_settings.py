@@ -36,7 +36,7 @@ def test_defaults_when_only_key_set(monkeypatch: pytest.MonkeyPatch) -> None:
     assert s.debate_rounds == 1
     assert s.risk_rounds == 1
     assert s.temperature == 0.0
-    assert s.budget_usd == 5.0
+    assert s.budget_usd == 1.0
     assert s.anthropic_api_key.get_secret_value() == FAKE_KEY
 
 
