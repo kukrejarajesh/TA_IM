@@ -130,3 +130,23 @@ def test_settings_are_frozen(monkeypatch: pytest.MonkeyPatch) -> None:
     s = load_settings()
     with pytest.raises(ValidationError):
         s.debate_rounds = 5
+
+
+def test_cache_defaults_and_overrides(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ANTHROPIC_API_KEY", FAKE_KEY)
+    s = load_settings()
+    assert s.cache_mode == "off"
+    assert s.cache_dir == Path(".llm_cache")
+    monkeypatch.setenv("TA_CACHE_MODE", "replay")
+    monkeypatch.setenv("TA_CACHE_DIR", "fixtures/llm")
+    s = load_settings()
+    assert s.cache_mode == "replay"
+    assert s.cache_dir == Path("fixtures/llm")
+
+
+def test_invalid_cache_mode_fails_naming_the_field(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ANTHROPIC_API_KEY", FAKE_KEY)
+    monkeypatch.setenv("TA_CACHE_MODE", "sometimes")
+    with pytest.raises(SettingsError) as exc:
+        load_settings()
+    assert "cache_mode" in str(exc.value)

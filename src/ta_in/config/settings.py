@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Literal
 
 from pydantic import Field, SecretStr, ValidationError
@@ -29,6 +30,8 @@ class Settings(BaseSettings):
     risk_rounds: int = Field(default=1, ge=1)
     temperature: float = Field(default=0.0, ge=0.0, le=1.0)
     budget_usd: float = Field(default=1.0, gt=0.0)
+    cache_mode: Literal["off", "record", "replay"] = "off"
+    cache_dir: Path = Path(".llm_cache")
 
 
 def _env_name(field: str) -> str:
