@@ -9,3 +9,4 @@ results/
 dist/
 .llm_cache/
 traces/
+docs/
