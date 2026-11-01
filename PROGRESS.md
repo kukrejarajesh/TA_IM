@@ -3,11 +3,12 @@
 ## Last session
 
 - Date: 2026-10-31
-- Story: S0.5 - run trace
-- Summary: `ta_in.llm.trace` (`TraceWriter` = one JSONL file per run, `summarize`, `main`). `LLMClient`
-  takes `trace=` and `complete(..., agent=)`; errors and budget breaches are traced too.
-  `uv run trace-summary <run-id-or-path>` prints calls, tokens, cost and time per agent.
-  16 tests in `tests/llm/test_trace.py`. `scripts/verify.py` passes.
+- Story: S0.8 - shared decision models
+- Summary: `ta_in.schemas` with `PortfolioRating`, `TraderAction`, `ResearchPlan`, `TraderProposal`,
+  `PortfolioDecision`, `RATINGS_5_TIER`, `RATING_REVIEW`, copied from TradingAgents v0.7.0 (source files noted
+  in `decision.py`). Names, labels, descriptions and defaults checked identical to upstream. One deviation:
+  the rupee sign is stripped from price strings. 72 tests in `tests/schemas/test_decision.py`. `docs/`
+  (upstream source) is gitignored.
 
 ## Done
 
@@ -16,11 +17,13 @@
 - S0.2: settings from .env with Pydantic (merged to main, PR #2; default budget $1)
 - S0.3: LLM client wrapper with retry, cost records and budget stop (merged, PR #3)
 - S0.4: response cache with record and replay (merged, PR #4)
-- S0.5: run trace and trace-summary (branch `s0.5-run-trace`, PR pending)
+- S0.5: run trace and trace-summary (merged, PR #5)
+- S0.8: shared decision models (branch `s0.8-decision-types`, PR pending)
 
 ## Next
 
-- S0.8 (next feature with passes=false in list order; check `depends_on` first).
+- S1.1: DataProvider interface + PointInTimeError guard (next in list order).
+- S0.7 (baseline run) is blocked until S1.8 passes; it also needs the fixture set, which is still undecided.
 
 ## Open issues
 
@@ -32,3 +35,5 @@
 - `pricing.py` prices are first-party list rates as of 2026-10; cache-read/creation tokens not costed yet.
 - Cache stores response text and token counts only; tool-use responses are not cached yet.
 - Trace `tool_calls` is always `[]` until `complete()` returns tool-use blocks. Trace time is summed call latency, not wall-clock.
+- Not ported from upstream yet: `SentimentBand`/`SentimentReport`, `render_*` helpers, `extract_rating`/`parse_rating` (in local `docs/`).
+- Upstream licence not recorded in the source comment; confirm the licence text before redistributing.
