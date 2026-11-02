@@ -2,13 +2,15 @@
 
 ## Last session
 
-- Date: 2026-10-31
-- Story: S0.8 - shared decision models
-- Summary: `ta_in.schemas` with `PortfolioRating`, `TraderAction`, `ResearchPlan`, `TraderProposal`,
-  `PortfolioDecision`, `RATINGS_5_TIER`, `RATING_REVIEW`, copied from TradingAgents v0.7.0 (source files noted
-  in `decision.py`). Names, labels, descriptions and defaults checked identical to upstream. One deviation:
-  the rupee sign is stripped from price strings. 72 tests in `tests/schemas/test_decision.py`. `docs/`
-  (upstream source) is gitignored.
+- Date: 2026-11-02
+- Story: S1.1 - DataProvider interface + PointInTimeError guard (first story of E1)
+- Summary: `ta_in.data` with `DataProvider` (Protocol; `prices`, `news`, `fundamentals`, `identity`, each
+  with a required keyword-only `as_of`) and `point_in_time.py` (`IST`, `PointInTimeError`, `is_visible`,
+  `check_not_after`, `guard_records`). Rules: `as_of` must be tz-aware (else `ValueError`); `datetime`
+  records compare as instants (naive read as IST); `date` records are visible through the IST calendar
+  date of `as_of`, inclusive. IST is a fixed +05:30 offset (no `tzdata` dependency). The guard raises and
+  never filters; filter-and-log is up to each provider. Protocol return types are loose (`Any`) until
+  S1.2-S1.6 add concrete record types. 16 tests in `tests/data/test_point_in_time.py`.
 
 ## Done
 
@@ -18,11 +20,13 @@
 - S0.3: LLM client wrapper with retry, cost records and budget stop (merged, PR #3)
 - S0.4: response cache with record and replay (merged, PR #4)
 - S0.5: run trace and trace-summary (merged, PR #5)
-- S0.8: shared decision models (branch `s0.8-decision-types`, PR pending)
+- S0.8: shared decision models (merged, PRs #6 and #7)
+- S1.1: DataProvider interface + PointInTimeError guard (branch `s1.1-point-in-time`, PR pending)
 
 ## Next
 
-- S1.1: DataProvider interface + PointInTimeError guard (next in list order).
+- S1.2: daily OHLCV for .NS tickers (next in list order); S1.6, S1.4 and S1.5 also unblocked.
+  Each provider must refine the `DataProvider` return types and pass results through `guard_records`.
 - S0.7 (baseline run) is blocked until S1.8 passes; it also needs the fixture set, which is still undecided.
 
 ## Open issues
