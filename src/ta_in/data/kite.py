@@ -6,6 +6,7 @@ from datetime import date, timedelta
 from typing import Any, Protocol
 
 from ta_in.config.settings import Settings
+from ta_in.data.identity import CompanyIdentity, Resolver, UnknownTickerError
 from ta_in.data.point_in_time import IST
 from ta_in.data.price_cache import PriceBar
 from ta_in.data.prices import Fetcher
@@ -18,10 +19,14 @@ class KiteConfigError(Exception):
     """Kite credentials are missing. Names the variables, never their values."""
 
 
-class KiteMarketData(Protocol):
-    """The two read-only KiteConnect methods used here."""
+class KiteInstruments(Protocol):
+    """The read-only instrument listing, enough for identity lookups."""
 
     def instruments(self, exchange: str) -> list[dict[str, Any]]: ...
+
+
+class KiteMarketData(KiteInstruments, Protocol):
+    """The two read-only KiteConnect methods used here."""
 
     def historical_data(
         self, instrument_token: int, from_date: date, to_date: date, interval: str
@@ -48,6 +53,36 @@ def kite_client_from_settings(settings: Settings) -> KiteMarketData:
     client.set_access_token(settings.kite_access_token.get_secret_value())
     client_typed: KiteMarketData = client
     return client_typed
+
+
+def make_kite_identity_resolver(client: KiteInstruments, sector_map: dict[str, str]) -> Resolver:
+    """Resolver for `IdentityProvider`: name and exchange from Kite, sector from `sector_map`.
+
+    Kite has no sector field, so a symbol missing from the map gets `sector=None`.
+    """
+    by_symbol: dict[str, dict[str, Any]] = {}
+
+    def load() -> None:
+        rows = [r for r in client.instruments("NSE") if r.get("instrument_type") == "EQ"]
+        # lowest instrument_token wins if a symbol repeats, so the answer is deterministic
+        for row in sorted(rows, key=lambda r: int(r["instrument_token"]), reverse=True):
+            by_symbol[str(row["tradingsymbol"])] = row
+
+    def resolve(ticker: str) -> CompanyIdentity:
+        if not by_symbol:
+            load()
+        symbol = ticker.removesuffix(".NS")
+        row = by_symbol.get(symbol)
+        if row is None:
+            raise UnknownTickerError(f"{symbol!r} not found among NSE equities on Kite")
+        return CompanyIdentity(
+            ticker=ticker,
+            name=str(row.get("name") or "").strip() or symbol,
+            sector=sector_map.get(symbol),
+            exchange="NSE",
+        )
+
+    return resolve
 
 
 def make_kite_fetcher(client: KiteMarketData) -> Fetcher:

@@ -6,6 +6,7 @@ from collections.abc import Sequence
 from datetime import datetime
 from typing import Any, Protocol, runtime_checkable
 
+from ta_in.data.identity import CompanyIdentity
 from ta_in.data.price_cache import PriceBar
 
 
@@ -24,4 +25,4 @@ class DataProvider(Protocol):
 
     def fundamentals(self, ticker: str, *, as_of: datetime) -> Any: ...
 
-    def identity(self, ticker: str, *, as_of: datetime) -> Any: ...
+    def identity(self, ticker: str, *, as_of: datetime) -> CompanyIdentity: ...
