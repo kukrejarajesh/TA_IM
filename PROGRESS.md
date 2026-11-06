@@ -3,8 +3,21 @@
 ## Last session
 
 - Date: 2026-11-06
-- Story: S1.3 - indicators from prices (RSI, MACD, Bollinger, ATR, SMA, EMA, VWMA)
-- Summary: `ta_in.data.indicators` with `compute_indicator(bars, kind, *, as_of, window=None)`,
+- Story: S1.7 - verified price snapshot for grounding
+- Summary: `ta_in.data.snapshot` with `PriceSnapshot` (frozen: `as_of_date`, `last_close`, `high_52w` /
+  `low_52w` with their dates, `history_complete_52w`, `return_1d/5d/20d/60d`), `build_snapshot(bars, *, as_of)`
+  and `render_snapshot(snapshot, ticker)`. Everything comes from `close` (not `adj_close`). The 52-week
+  window is `date >= last_date - 365 days` (inclusive); the earliest date wins a tie; `history_complete_52w`
+  is false when the first bar is inside the window, and the rendered text then says the range is partial.
+  Returns are over 1, 5, 20 and 60 trading bars and are `None` when there are too few bars. Bars go through
+  `guard_records` (a later bar raises `PointInTimeError`) and must be strictly ascending. 12 offline tests in
+  `tests/data/test_snapshot.py`, including an exact golden text and a run through `PriceProvider`.
+  **Criterion 2 ("agents receive the snapshot in their context") is only covered up to the render function.**
+  Ticked on purpose to avoid a deadlock (S2.1 and S2.2 depend on S1.7). The real injection must be verified in
+  later stories: S2.1's `AgentState` should hold a `PriceSnapshot`, S2.2/S2.3 should put `render_snapshot(...)` in
+  the agent context, and S2.3 compares report figures to the snapshot.
+- Previous story: S1.3 - indicators from prices (RSI, MACD, Bollinger, ATR, SMA, EMA, VWMA)
+- S1.3 summary: `ta_in.data.indicators` with `compute_indicator(bars, kind, *, as_of, window=None)`,
   `IndicatorValue(date, value | None)` and `INDICATOR_KINDS` (`sma`, `ema`, `rsi`, `macd`, `macd_signal`,
   `macd_hist`, `boll_mid`, `boll_upper`, `boll_lower`, `atr`, `vwma`). Built on `stockstats` 0.6.10 (what upstream
   uses; works on pandas 3.1.1). Bars go through `guard_records` (a later bar raises `PointInTimeError`, nothing is
@@ -61,14 +74,15 @@
 - S1.1: DataProvider interface + PointInTimeError guard (merged, PR #8)
 - S1.2: daily OHLCV for .NS tickers via yfinance (merged to main), plus the Kite fetcher extension
 - S1.6: company identity from Kite, cached (merged, PR #13)
-- S1.3: indicators via stockstats (branch `s1.3-indicators`, not pushed)
+- S1.3: indicators via stockstats (merged, PR #14)
+- S1.7: verified price snapshot (branch `s1.7-snapshot`, not pushed; criterion 2 covered up to render only)
 
 ## Next
 
-- Sprint 2 is complete. Sprint 3 remaining: S1.4 news (needs a source decision; Kite has no news), S1.5
-  fundamentals (Kite has no statements; yfinance was unreachable from the dev machine), S1.7 price snapshot
-  (no new source needed, and S1.8 and S2.1 depend on it). Each provider must refine the `DataProvider` return types and pass results through
-  `guard_records`.
+- Sprint 2 is complete. Sprint 3 remaining: S1.4 news (needs a source decision; Kite has no news) and S1.5
+  fundamentals (Kite has no statements; yfinance was unreachable from the dev machine). Each provider must
+  refine the `DataProvider` return types and pass results through `guard_records`.
+- S2.1 (AgentState) is unblocked once S0.8 and S1.7 are merged; it should hold a `PriceSnapshot`.
 - S0.7 (baseline run) is blocked until S1.8 passes; it also needs the fixture set, which is still undecided.
 
 ## Open issues
