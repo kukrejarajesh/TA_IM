@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     cache_mode: Literal["off", "record", "replay"] = "off"
     cache_dir: Path = Path(".llm_cache")
     trace_dir: Path = Path("traces")
+    data_cache_dir: Path = Path(".data_cache")
 
 
 def _env_name(field: str) -> str:

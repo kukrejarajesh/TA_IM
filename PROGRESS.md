@@ -2,15 +2,19 @@
 
 ## Last session
 
-- Date: 2026-11-02
-- Story: S1.1 - DataProvider interface + PointInTimeError guard (first story of E1)
-- Summary: `ta_in.data` with `DataProvider` (Protocol; `prices`, `news`, `fundamentals`, `identity`, each
-  with a required keyword-only `as_of`) and `point_in_time.py` (`IST`, `PointInTimeError`, `is_visible`,
-  `check_not_after`, `guard_records`). Rules: `as_of` must be tz-aware (else `ValueError`); `datetime`
-  records compare as instants (naive read as IST); `date` records are visible through the IST calendar
-  date of `as_of`, inclusive. IST is a fixed +05:30 offset (no `tzdata` dependency). The guard raises and
-  never filters; filter-and-log is up to each provider. Protocol return types are loose (`Any`) until
-  S1.2-S1.6 add concrete record types. 16 tests in `tests/data/test_point_in_time.py`.
+- Date: 2026-11-06
+- Story: S1.2 - daily OHLCV for .NS tickers via yfinance, cached locally
+- Summary: `PriceBar` and `PriceCache` (`price_cache.py`, one JSON file per ticker under
+  `Settings.data_cache_dir`, default `.data_cache`), `PriceProvider` and `yfinance_fetcher` (`prices.py`).
+  The provider takes an injected fetcher, so tests are offline. It requires a `.NS` ticker and tz-aware
+  `as_of`, filters vendor over-returns (logged), filters again on every cache read, and ends with
+  `guard_records`. The cache tracks the fetched range `[start, through]` and fetches only the missing head
+  or tail. Holidays are absent, never invented; NaN and zero-volume rows are dropped. Decision: a day's bar
+  is visible only from 15:30 IST that day (`MARKET_CLOSE`); before that, the previous day is the last bar.
+  `DataProvider.prices` now returns `Sequence[PriceBar]`. Default lookback is 400 calendar days.
+  12 tests in `tests/data/test_prices.py` plus 1 `live` smoke test (not run).
+- Earlier: S1.1 added `DataProvider` (Protocol) and `point_in_time.py` (`IST`, `PointInTimeError`,
+  `is_visible`, `check_not_after`, `guard_records`). The guard raises and never filters.
 
 ## Done
 
@@ -21,11 +25,12 @@
 - S0.4: response cache with record and replay (merged, PR #4)
 - S0.5: run trace and trace-summary (merged, PR #5)
 - S0.8: shared decision models (merged, PRs #6 and #7)
-- S1.1: DataProvider interface + PointInTimeError guard (branch `s1.1-point-in-time`, PR pending)
+- S1.1: DataProvider interface + PointInTimeError guard (merged, PR #8)
+- S1.2: daily OHLCV for .NS tickers (branch `s1.2-prices`, PR pending)
 
 ## Next
 
-- S1.2: daily OHLCV for .NS tickers (next in list order); S1.6, S1.4 and S1.5 also unblocked.
+- S1.6 (identity) is next in list order; S1.3, S1.7, S1.4 and S1.5 are also unblocked.
   Each provider must refine the `DataProvider` return types and pass results through `guard_records`.
 - S0.7 (baseline run) is blocked until S1.8 passes; it also needs the fixture set, which is still undecided.
 

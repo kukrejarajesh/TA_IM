@@ -8,5 +8,6 @@ results/
 *.egg-info/
 dist/
 .llm_cache/
+.data_cache/
 traces/
 docs/

@@ -6,6 +6,8 @@ from collections.abc import Sequence
 from datetime import datetime
 from typing import Any, Protocol, runtime_checkable
 
+from ta_in.data.price_cache import PriceBar
+
 
 @runtime_checkable
 class DataProvider(Protocol):
@@ -16,7 +18,7 @@ class DataProvider(Protocol):
     concrete record types land in S1.2-S1.6.
     """
 
-    def prices(self, ticker: str, *, as_of: datetime) -> Sequence[Any]: ...
+    def prices(self, ticker: str, *, as_of: datetime) -> Sequence[PriceBar]: ...
 
     def news(self, ticker: str, *, as_of: datetime) -> Sequence[Any]: ...
 
