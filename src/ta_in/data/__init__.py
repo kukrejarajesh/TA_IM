@@ -21,6 +21,7 @@ from ta_in.data.point_in_time import (
 from ta_in.data.price_cache import PriceBar
 from ta_in.data.prices import PriceProvider, yfinance_fetcher
 from ta_in.data.provider import DataProvider
+from ta_in.data.snapshot import PriceSnapshot, build_snapshot, render_snapshot
 
 __all__ = [
     "INDICATOR_KINDS",
@@ -33,7 +34,9 @@ __all__ = [
     "PointInTimeError",
     "PriceBar",
     "PriceProvider",
+    "PriceSnapshot",
     "UnknownTickerError",
+    "build_snapshot",
     "check_not_after",
     "compute_indicator",
     "guard_records",
@@ -42,5 +45,6 @@ __all__ = [
     "load_sector_map",
     "make_kite_fetcher",
     "make_kite_identity_resolver",
+    "render_snapshot",
     "yfinance_fetcher",
 ]
