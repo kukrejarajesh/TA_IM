@@ -3,8 +3,20 @@
 ## Last session
 
 - Date: 2026-11-06
-- Story: S1.6 - company identity resolved from the ticker and cached
-- Summary: `ta_in.data.identity` with `CompanyIdentity` (frozen: ticker, name, `sector | None`, exchange; no
+- Story: S1.3 - indicators from prices (RSI, MACD, Bollinger, ATR, SMA, EMA, VWMA)
+- Summary: `ta_in.data.indicators` with `compute_indicator(bars, kind, *, as_of, window=None)`,
+  `IndicatorValue(date, value | None)` and `INDICATOR_KINDS` (`sma`, `ema`, `rsi`, `macd`, `macd_signal`,
+  `macd_hist`, `boll_mid`, `boll_upper`, `boll_lower`, `atr`, `vwma`). Built on `stockstats` 0.6.10 (what upstream
+  uses; works on pandas 3.1.1). Bars go through `guard_records` (a later bar raises `PointInTimeError`, nothing is
+  filtered) and must be strictly ascending by date. Defaults: rsi 14, boll 20, atr 14, vwma 20; `sma`/`ema`
+  need a window; MACD is fixed at 12/26/9 and rejects a window. Conventions are stockstats': EMA/RSI/ATR use
+  `adjust=True` weights (RSI/ATR alpha = 1/window), Bollinger uses the sample std (ddof=1), VWMA weights the
+  typical price (H+L+C)/3 by volume. stockstats pads the start with partial-window values; we replace those
+  with `None` (sma/boll/vwma/atr: first window-1 bars, rsi: first window bars). EMA and MACD are not masked.
+  16 offline tests in `tests/data/test_indicators.py`; expected values were worked out with plain arithmetic
+  (and cross-checked with a separate plain-Python reference), not copied from the library.
+- Previous story: S1.6 - company identity resolved from the ticker and cached
+- S1.6 summary: `ta_in.data.identity` with `CompanyIdentity` (frozen: ticker, name, `sector | None`, exchange; no
   timestamp), `UnknownTickerError` (a `ValueError`), `IdentityProvider(resolver, cache_dir)` and
   `load_sector_map`. Cache: `<data_cache_dir>/identity/<TICKER>.json`; failures are never cached; a corrupt
   file is re-resolved. Tickers are stripped and upper-cased, so spelling cannot change the identity. The Kite
@@ -48,12 +60,14 @@
 - S0.8: shared decision models (merged, PRs #6 and #7)
 - S1.1: DataProvider interface + PointInTimeError guard (merged, PR #8)
 - S1.2: daily OHLCV for .NS tickers via yfinance (merged to main), plus the Kite fetcher extension
-- S1.6: company identity from Kite, cached (branch `s1.6-identity`, not pushed)
+- S1.6: company identity from Kite, cached (merged, PR #13)
+- S1.3: indicators via stockstats (branch `s1.3-indicators`, not pushed)
 
 ## Next
 
-- Sprint 2 is complete once S1.6 merges. Sprint 3 (S1.3 indicators, S1.4 news, S1.5 fundamentals, S1.7
-  snapshot) is unblocked; S1.3 is next in list order. Each provider must refine the `DataProvider` return types and pass results through
+- Sprint 2 is complete. Sprint 3 remaining: S1.4 news (needs a source decision; Kite has no news), S1.5
+  fundamentals (Kite has no statements; yfinance was unreachable from the dev machine), S1.7 price snapshot
+  (no new source needed, and S1.8 and S2.1 depend on it). Each provider must refine the `DataProvider` return types and pass results through
   `guard_records`.
 - S0.7 (baseline run) is blocked until S1.8 passes; it also needs the fixture set, which is still undecided.
 

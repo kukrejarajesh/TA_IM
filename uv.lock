@@ -1917,6 +1917,20 @@ wheels = [
 ]
 
 [[package]]
+name = "stockstats"
+version = "0.6.10"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "numpy", version = "2.5.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "pandas" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ba/aa/073dc212d6101e8ea77e2a7bdfe5e223fabb5147de81fc992e074ccd7043/stockstats-0.6.10.tar.gz", hash = "sha256:a8a8d1405d4c90aedf3b1fbcd9a2163713ad95adfc3ffb7105b1a392598e4e20", size = 203149, upload-time = "2026-10-26T05:32:44.013Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b7/33/31908798e1d37366b1e26f81c5c635258d59fb8ef4dd5e86a721675d5aae/stockstats-0.6.10-py3-none-any.whl", hash = "sha256:51fc17fec0c4377edfc114a4a59051d27f49b44d791b292cefc34e04e4011c65", size = 35001, upload-time = "2026-10-26T05:32:42.644Z" },
+]
+
+[[package]]
 name = "ta-in"
 version = "0.1.0"
 source = { editable = "." }
@@ -1925,6 +1939,7 @@ dependencies = [
     { name = "kiteconnect" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
+    { name = "stockstats" },
     { name = "yfinance" },
 ]
 
@@ -1942,6 +1957,7 @@ requires-dist = [
     { name = "kiteconnect", specifier = ">=5.2.2" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
+    { name = "stockstats", specifier = ">=0.6.10" },
     { name = "yfinance", specifier = ">=1.8.0" },
 ]
 

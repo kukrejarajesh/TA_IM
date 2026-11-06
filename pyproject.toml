@@ -8,6 +8,7 @@ dependencies = [
     "kiteconnect>=5.2.2",
     "pydantic",
     "pydantic-settings",
+    "stockstats>=0.6.10",
     "yfinance>=1.8.0",
 ]
 
@@ -42,7 +43,7 @@ strict = true
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["yfinance", "yfinance.*", "pandas", "pandas.*", "kiteconnect", "kiteconnect.*"]
+module = ["yfinance", "yfinance.*", "pandas", "pandas.*", "kiteconnect", "kiteconnect.*", "stockstats"]
 ignore_missing_imports = true
 
 [tool.pydantic-mypy]
