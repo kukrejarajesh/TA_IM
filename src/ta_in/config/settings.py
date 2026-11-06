@@ -34,6 +34,8 @@ class Settings(BaseSettings):
     cache_dir: Path = Path(".llm_cache")
     trace_dir: Path = Path("traces")
     data_cache_dir: Path = Path(".data_cache")
+    kite_api_key: SecretStr | None = None
+    kite_access_token: SecretStr | None = None
 
 
 def _env_name(field: str) -> str:

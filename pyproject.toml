@@ -5,6 +5,7 @@ description = "Python rebuild of TradingAgents v0.7.0 for NSE stocks (paper trad
 requires-python = ">=3.11"
 dependencies = [
     "anthropic",
+    "kiteconnect>=5.2.2",
     "pydantic",
     "pydantic-settings",
     "yfinance>=1.8.0",
@@ -41,7 +42,7 @@ strict = true
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["yfinance", "yfinance.*", "pandas", "pandas.*"]
+module = ["yfinance", "yfinance.*", "pandas", "pandas.*", "kiteconnect", "kiteconnect.*"]
 ignore_missing_imports = true
 
 [tool.pydantic-mypy]

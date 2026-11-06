@@ -35,9 +35,16 @@ def _merge(old: list[PriceBar], new: list[PriceBar]) -> list[PriceBar]:
 class PriceProvider:
     """`DataProvider.prices` for NSE tickers. Holidays are simply absent; none are invented."""
 
-    def __init__(self, fetcher: Fetcher, cache_dir: Path, *, lookback_days: int = 400) -> None:
+    def __init__(
+        self,
+        fetcher: Fetcher,
+        cache_dir: Path,
+        *,
+        lookback_days: int = 400,
+        source: str = "yfinance",
+    ) -> None:
         self._fetcher = fetcher
-        self._cache = PriceCache(cache_dir)
+        self._cache = PriceCache(cache_dir, source)
         self._lookback = timedelta(days=lookback_days)
 
     def _fetch(self, ticker: str, start: date, end: date) -> list[PriceBar]:

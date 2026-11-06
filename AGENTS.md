@@ -30,7 +30,7 @@ Python rebuild of TradingAgents v0.7.0 for NSE stocks. Paper trading only.
 ## Hard rules
 
 1. Every data call takes `as_of` and never returns data later than `as_of`.
-2. No broker or order-execution code. Paper trading only.
+2. Broker API clients (e.g. Kite Connect) are allowed for market data. No code may place, modify or cancel real orders. Paper trading only.
 3. Never read or print `.env`. Use `.env.example` for variable names.
 4. Tests run offline. Anything that hits the network is marked `live` and excluded by default.
 5. Never weaken a test or acceptance criterion to make it pass. Fix the code, or ask.
