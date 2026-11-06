@@ -35,11 +35,13 @@ class CachedPrices(BaseModel):
 
 
 class PriceCache:
-    def __init__(self, root: Path) -> None:
+    def __init__(self, root: Path, source: str = "yfinance") -> None:
         self._root = root
+        self._source = source
 
     def _path(self, ticker: str) -> Path:
-        return self._root / "prices" / f"{ticker}.json"
+        # One folder per data source, so two sources never mix bars for the same ticker.
+        return self._root / "prices" / self._source / f"{ticker}.json"
 
     def load(self, ticker: str) -> CachedPrices | None:
         path = self._path(ticker)

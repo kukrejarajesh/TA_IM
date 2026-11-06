@@ -13,6 +13,12 @@
   is visible only from 15:30 IST that day (`MARKET_CLOSE`); before that, the previous day is the last bar.
   `DataProvider.prices` now returns `Sequence[PriceBar]`. Default lookback is 400 calendar days.
   12 tests in `tests/data/test_prices.py` plus 1 `live` smoke test (not run).
+- Extension (branch `s1.2-kite-fetcher`, not a listed story): hard rule 2 relaxed in AGENTS.md (broker API
+  clients allowed for market data; no real orders). Added `ta_in.data.kite` (`make_kite_fetcher`,
+  `kite_client_from_settings`, `KiteConfigError`) as a second `PriceProvider` fetcher over Kite Connect, with
+  optional `TA_KITE_API_KEY` / `TA_KITE_ACCESS_TOKEN` settings. The price cache is now per source
+  (`prices/<source>/<ticker>.json`, `PriceProvider(..., source="kite")`). 7 offline tests in
+  `tests/data/test_kite_prices.py`; the Kite live test is skipped without credentials.
 - Earlier: S1.1 added `DataProvider` (Protocol) and `point_in_time.py` (`IST`, `PointInTimeError`,
   `is_visible`, `check_not_after`, `guard_records`). The guard raises and never filters.
 
@@ -35,6 +41,10 @@
 - S0.7 (baseline run) is blocked until S1.8 passes; it also needs the fixture set, which is still undecided.
 
 ## Open issues
+
+- The S1.2 yfinance live test failed on 2026-11-06 with a connect timeout to Yahoo from the dev machine; run it
+  where Yahoo is reachable. The Kite live test has never been run (needs credentials and a paid history plan).
+- Kite history has no adjusted close (`adj_close == close`); split/bonus adjustment is not verified.
 
 - The guard is a local pre-commit hook only; `git commit --no-verify` skips it. No CI check by choice.
 - `.python-version` pins 3.13 (uv's managed 3.12 download failed in this sandbox); CI covers 3.11/3.12.
