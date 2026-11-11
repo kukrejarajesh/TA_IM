@@ -1,0 +1,7 @@
+{
+  "tickers": ["RELIANCE.NS", "TCS.NS", "INFY.NS", "HDFCBANK.NS", "ICICIBANK.NS"],
+  "past_dates": ["2026-10-21", "2026-10-28", "2026-11-04"],
+  "decision_time": "16:00:00",
+  "include_current": true,
+  "holding_period_trading_days": 5
+}

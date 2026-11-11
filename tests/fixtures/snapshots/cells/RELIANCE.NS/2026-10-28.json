@@ -1,0 +1,76 @@
+{
+  "ticker": "RELIANCE.NS",
+  "as_of": "2026-10-28T16:00:00+05:30",
+  "frozen_at": "2026-11-11T17:08:52+05:30",
+  "price_snapshot": {
+    "as_of_date": "2026-10-28",
+    "last_close": 1158.0,
+    "high_52w": 1592.3,
+    "high_52w_date": "2026-01-02",
+    "low_52w": 1158.0,
+    "low_52w_date": "2026-10-28",
+    "history_complete_52w": true,
+    "return_1d": -0.031934459120548486,
+    "return_5d": -0.04218362282878407,
+    "return_20d": -0.033066132264529036,
+    "return_60d": -0.11454350818167913
+  },
+  "news": [
+    {
+      "title": "Can Jio IPO unlock hidden value in Reliance Industries shares?",
+      "source": "ET Online",
+      "published_time": "2026-10-21T13:35:50Z",
+      "url": "https://economictimes.indiatimes.com/markets/stocks/news/can-jio-ipo-unlock-hidden-value-in-reliance-industries-shares/videoshow/135093782.cms",
+      "summary": "Jio Platforms is hitting the stock market, but could its listing mean more value for Reliance Industries shareholders too? We break down the holding company discount, what Reliance’s stake in Jio is worth, and why the IPO could change how investors look at RIL."
+    },
+    {
+      "title": "Buy, Sell Or Hold: Kalyan Jewellers, Biocon, Paytm, Reliance Industries, ITC And IDFC First Bank — Ask Profit",
+      "source": "Prajwal Jayaraj",
+      "published_time": "2026-10-26T17:34:30Z",
+      "url": "https://www.ndtvprofit.com/markets/buy-sell-or-hold-kalyan-jewellers-biocon-paytm-reliance-industries-itc-and-idfc-first-bank-ask-profit-12239679",
+      "summary": "Market experts shared buy, sell and hold recommendations for an array of stocks including Kalyan Jewellers, Biocon, Paytm, Reliance Industries, ITC and IDFC First Bank."
+    },
+    {
+      "title": "Jio IPO Listing Live Updates: Will Jio Platforms Shares Deliver Big Listing Gains? NSE, BSE Debut Today",
+      "source": "Ankit Gohel",
+      "published_time": "2026-10-28T01:06:28Z",
+      "url": "https://www.ndtvprofit.com/markets/jio-platforms-ipo-listing-live-updates-jio-share-price-debut-on-nse-bse-today-gmp-listing-gains-12245930",
+      "summary": "Jio Platforms IPO Listing Live Updates: Mukesh Ambani-led Reliance Industries' digital arm, Jio Platforms Ltd, is set to make its stock market debut on October 28. Track Jio's listing price, share price movements, grey market premium (GMP), listing gains and the latest updates from NSE and BSE."
+    },
+    {
+      "title": "Ambani family rings ceremonial bell: Jio Platforms makes Dalal Street debut at ₹1358 per share",
+      "source": "ET Online",
+      "published_time": "2026-10-28T05:17:25Z",
+      "url": "https://economictimes.indiatimes.com/news/short-videos/ambani-family-rings-ceremonial-bell-jio-platforms-makes-dalal-street-debut-at-1358-per-share/videoshow/135253103.cms",
+      "summary": "The Ambani family marked a major milestone as Jio Platforms made its much-anticipated debut on Dalal Street. The family rang the ceremonial bell as the company listed on the NSE at ₹1,358 per share, drawing attention from investors and the Indian markets. The listing marks a significant moment for R..."
+    },
+    {
+      "title": "Mukesh Ambani gets teary-eyed as Anant, Akash, Isha talk about Reliance's journey at Jio listing",
+      "source": "Shivanghi Payal",
+      "published_time": "2026-10-28T06:45:59Z",
+      "url": "https://timesofindia.indiatimes.com/business/india-business/mukesh-ambani-gets-teary-eyed-as-anant-ambani-talks-about-reliances-journey-at-jio-listing/articleshow/135255155.cms",
+      "summary": "Reliance Industries chairman Mukesh Ambani got emotional at Jio Platforms Limited’s listing ceremony as he watched his children speak about the family’s legacy and Jio’s journey. Sitting beside his wife, Nita Ambani, the 69-year-old chairman listened as Isha, Akash and Anant Ambani addressed the gat..."
+    },
+    {
+      "title": "Jio Platforms' post-IPO playbook: What's ahead for No. 2 of Dalal Street?",
+      "source": "SECTIONS Jio Platformss ahead",
+      "published_time": "2026-10-28T09:26:58Z",
+      "url": "https://economictimes.indiatimes.com/news/company/corporate-trends/jio-platforms-post-ipo-playbook-reliance-jio-stock-market-listing-21-gain-on-debut-whats-ahead-for-no-2-of-dalal-street/articleshow/135259153.cms",
+      "summary": "Reliance Jio Platforms made a blockbuster stock market debut, listing at a 21.4% premium and reaching a $131.5 billion valuation. After India's biggest IPO, investors are watching Jio's next growth engines: tariff hikes, broadband expansion, artificial intelligence, cloud services and stronger cash ..."
+    },
+    {
+      "title": "Jio IPO listing: With drones, DJs and a helipad, Ambani throws a party for stock market debut",
+      "source": "SECTIONS Jio IPO listing; DJs; A Helipad; Ambani throws a party",
+      "published_time": "2026-10-28T09:31:02Z",
+      "url": "https://economictimes.indiatimes.com/news/company/corporate-trends/jio-ipo-listing-with-drones-djs-and-a-helipad-ambani-throws-a-party-for-stock-market-debut/articleshow/135259588.cms",
+      "summary": "Mukesh Ambani is hosting extravagant celebrations for the IPO of Reliance conglomerate, which is a significant event. The festivities include elaborate performances and a drone show near a helipad, creating a festive atmosphere. Many employees shared videos of dancing and lively celebrations on soci..."
+    }
+  ],
+  "news_events": [],
+  "fundamentals": {
+    "ticker": "RELIANCE.NS",
+    "as_of": "2026-10-28T16:00:00+05:30",
+    "reason": "Past date: fundamentals sources return today's statements and give no announcement dates, so serving them for an earlier as_of would leak information from after that date."
+  },
+  "errors": []
+}

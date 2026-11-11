@@ -1,0 +1,62 @@
+{
+  "ticker": "TCS.NS",
+  "as_of": "2026-10-28T16:00:00+05:30",
+  "frozen_at": "2026-11-11T17:08:52+05:30",
+  "price_snapshot": {
+    "as_of_date": "2026-10-28",
+    "last_close": 2460.0,
+    "high_52w": 3324.9,
+    "high_52w_date": "2025-12-22",
+    "low_52w": 1982.6,
+    "low_52w_date": "2026-07-01",
+    "history_complete_52w": true,
+    "return_1d": -0.014778325123152691,
+    "return_5d": -0.027283511269276417,
+    "return_20d": 0.18800405659921782,
+    "return_60d": 0.0399053094352384
+  },
+  "news": [
+    {
+      "title": "Stock Market Today: Sensex Gains Over 400 Points, Nifty 50 Opens Above 22,700; TCS, Infosys, HCL Tech Lead",
+      "source": "Ankit Gohel",
+      "published_time": "2026-10-23T03:46:44Z",
+      "url": "https://www.ndtvprofit.com/markets/stock-market-today-sensex-gains-over-400-points-nifty-50-opens-above-22-700-tcs-infosys-it-stocks-lead-12223376",
+      "summary": "Among sectors, Nifty IT index was the only one to trade in the green. Losses were seen in Nifty Metals, Nifty Realty, Nifty Auto, Nifty Pharma and Nifty PSU Bank indices."
+    },
+    {
+      "title": "IT Stocks Rally: Nifty IT Jumps Over 1.3%; TCS, Infosys, Wipro Lead Gains",
+      "source": "Mohammad Haris; Business Desk",
+      "published_time": "2026-10-23T04:15:53Z",
+      "url": "https://www.news18.com/business/markets/it-stocks-rally-nifty-it-jumps-over-1-3-tcs-infosys-wipro-lead-gains-10393810.html",
+      "summary": "TCS shares gain 3.05% to Rs 2,583.30, while Infosys advances 2.32% to Rs 1,180.10. Wipro rises 1.47% to Rs 193.21, and HCL Technologies climbs 1.56% to Rs 1,443.90."
+    },
+    {
+      "title": "IT Stocks In Red: Nifty IT Index Drops Nearly 2% As Infosys, TCS, Mphasis Shares Lead Losses",
+      "source": "Ankit Gohel",
+      "published_time": "2026-10-27T04:35:53Z",
+      "url": "https://www.ndtvprofit.com/markets/it-stocks-in-red-nifty-it-index-drops-nearly-2-as-infosys-tcs-mphasis-shares-lead-losses-12240917",
+      "summary": "All constituents of the Nifty IT index traded in the red, with Infosys, Mphasis, Wipro, Tata Consultancy Services (TCS) and HCL Technologies among the major laggards."
+    },
+    {
+      "title": "IT Stocks In Red: Infosys, Coforge, Mphasis Lead Losses; Nifty IT Tanks Over 3%",
+      "source": "Maumita Mitra",
+      "published_time": "2026-10-28T05:37:59Z",
+      "url": "https://www.ndtvprofit.com/markets/it-stocks-in-red-infosys-coforge-mphasis-lead-losses-nifty-it-falls-over-3-12246549",
+      "summary": "The Nifty IT index slipped 3.38% as selling pressure hit large-cap and mid-cap IT stocks. Infosys, HCL Technologies, Tech Mahindra, and TCS were among the major losers"
+    },
+    {
+      "title": "Jio Listing: Telco's Stellar Debut Knocks TCS Out Of India's Top Five, SBI Climbs",
+      "source": "Mohammed Uzair Shaikh",
+      "published_time": "2026-10-28T06:30:03Z",
+      "url": "https://www.ndtvprofit.com/markets/jio-listing-telcos-stellar-debut-ranks-second-out-of-india-top-five-sbi-gains-12246843",
+      "summary": "Tata Consultancy Services slipped to seventh place by market value on Wednesday morning. Jio Platforms went straight to No. 2 on its first day of trading, and a sell-off in IT stocks let State Bank of India move past the software major as well."
+    }
+  ],
+  "news_events": [],
+  "fundamentals": {
+    "ticker": "TCS.NS",
+    "as_of": "2026-10-28T16:00:00+05:30",
+    "reason": "Past date: fundamentals sources return today's statements and give no announcement dates, so serving them for an earlier as_of would leak information from after that date."
+  },
+  "errors": []
+}

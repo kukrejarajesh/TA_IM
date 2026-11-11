@@ -1,0 +1,62 @@
+{
+  "ticker": "TCS.NS",
+  "as_of": "2026-10-21T16:00:00+05:30",
+  "frozen_at": "2026-11-11T17:08:52+05:30",
+  "price_snapshot": {
+    "as_of_date": "2026-10-21",
+    "last_close": 2529.0,
+    "high_52w": 3324.9,
+    "high_52w_date": "2025-12-22",
+    "low_52w": 1982.6,
+    "low_52w_date": "2026-07-01",
+    "history_complete_52w": true,
+    "return_1d": 0.027672802633182947,
+    "return_5d": 0.11444057638919491,
+    "return_20d": 0.18804904401747558,
+    "return_60d": 0.12185600851705614
+  },
+  "news": [
+    {
+      "title": "IT Shares Rally: HCLTech, Tech Mahindra, TCS Lead Tech Stocks Surge Amid Global Market Rout",
+      "source": "Maumita Mitra",
+      "published_time": "2026-10-15T07:56:24Z",
+      "url": "https://www.ndtvprofit.com/markets/it-stocks-rally-hcltech-tech-mahindra-tcs-lead-tech-stocks-surge-amid-global-market-rout-12188181",
+      "summary": "IT stocks extended their gains after HCLTech's September-quarter results beat expectations. The Nifty IT index rose 2.06% to 30,793.15, while HCLTech, Tech Mahindra, and TCS advanced as investors assessed earnings momentum and global technology trends."
+    },
+    {
+      "title": "IT Stocks Rally For Fourth Day: Why Are Infosys, TCS, Tech Mahindra Shares Rising? Know Key Reasons",
+      "source": "Mohammad Haris",
+      "published_time": "2026-10-16T05:16:26Z",
+      "url": "https://www.news18.com/business/markets/it-stocks-rally-for-fourth-day-why-are-infosys-tcs-tech-mahindra-shares-rising-know-key-reasons-10384343.html",
+      "summary": "The Nifty IT index surges 3.39% to 31,761.35 in morning trade, emerging as the biggest driver of the domestic market's recovery."
+    },
+    {
+      "title": "Mcap of nine of top-10 most valued firms surges by ₹3.65 trn, TCS shines",
+      "source": "Currents",
+      "published_time": "2026-10-18T06:41:19Z",
+      "url": "https://www.business-standard.com/markets/news/mcap-of-nine-of-top-10-most-valued-firms-surges-by-3-65-trn-tcs-shines-126101800187_1.html",
+      "summary": "Last week, the BSE benchmark Sensex surged 2,256.94 points, or 3.11 per cent, and the NSE Nifty jumped 625.7 points, or 2.77 per cent"
+    },
+    {
+      "title": "Market recap: Top-10 firms add Rs 3.65 lakh crore in mcap; TCS leads the gains",
+      "source": "Shivanghi Payal",
+      "published_time": "2026-10-18T07:25:29Z",
+      "url": "https://timesofindia.indiatimes.com/business/india-business/market-recap-top-10-firms-add-rs-3-65-lakh-crore-in-mcap-tcs-leads-the-gains/articleshow/135025500.cms",
+      "summary": "A strong week in the stock market added Rs 3.65 lakh crore to the combined market value of nine of India’s top-10 most valued firms. TCS led the gains, followed by Bharti Airtel and Infosys."
+    },
+    {
+      "title": "Buy, Sell Or Hold: TCS Asian Paints, Tata Motors PV, Coforge, Welspun Corp | Ask Profit",
+      "source": "Soumil Kamat",
+      "published_time": "2026-10-19T00:34:25Z",
+      "url": "https://www.ndtvprofit.com/markets/buy-sell-or-hold-tcs-asian-paints-tata-motors-pv-coforge-welspun-corp-ask-profit-12203943",
+      "summary": "Market experts shared their insights on fundamentals and technical levels for key stocks."
+    }
+  ],
+  "news_events": [],
+  "fundamentals": {
+    "ticker": "TCS.NS",
+    "as_of": "2026-10-21T16:00:00+05:30",
+    "reason": "Past date: fundamentals sources return today's statements and give no announcement dates, so serving them for an earlier as_of would leak information from after that date."
+  },
+  "errors": []
+}

@@ -16,6 +16,7 @@ dependencies = [
 
 [project.scripts]
 trace-summary = "ta_in.llm.trace:main"
+freeze-fixtures = "ta_in.fixtures.cli:main"
 
 [dependency-groups]
 dev = [

@@ -3,6 +3,7 @@ paths:
   - "src/ta_in/data/**"
   - "src/ta_in/news/**"
   - "src/ta_in/fundamentals/**"
+  - "src/ta_in/fixtures/**"
 ---
 
 # Data layer: point-in-time rule

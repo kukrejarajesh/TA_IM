@@ -1,0 +1,167 @@
+{
+  "ticker": "INFY.NS",
+  "as_of": "2026-10-28T16:00:00+05:30",
+  "frozen_at": "2026-11-11T17:08:52+05:30",
+  "price_snapshot": {
+    "as_of_date": "2026-10-28",
+    "last_close": 1098.0,
+    "high_52w": 1617.0,
+    "high_52w_date": "2026-01-16",
+    "low_52w": 963.2,
+    "low_52w_date": "2026-07-01",
+    "history_complete_52w": true,
+    "return_1d": -0.03430079155672827,
+    "return_5d": -0.038360483447188565,
+    "return_20d": 0.11960844294891393,
+    "return_60d": -0.006154960173787027
+  },
+  "news": [
+    {
+      "title": "Q2 results today: Infosys, Tata Motors, Adani Power among 75 firms on Oct 23",
+      "source": "Business Standard; Apexa Rai",
+      "published_time": "2026-10-23T06:07:12Z",
+      "url": "https://www.business-standard.com/companies/quarterly-results/q2-results-infosys-tata-motors-adani-power-among-75-firms-on-oct-23-126102300433_1.html",
+      "summary": "Q2FY27 company results: Firms including JSW Steel, Jindal Steel, Bharat Petroleum Corporation, Dr Reddys Laboratories, and Shriram Finance are also to release their July-September earnings today"
+    },
+    {
+      "title": "Infosys Q2 results: Net profit rises 6.2% to ₹7,823 cr, revenue up 10.2%",
+      "source": "Business Standard; Our Bureau",
+      "published_time": "2026-10-23T10:54:07Z",
+      "url": "https://www.business-standard.com/companies/quarterly-results/infosys-q2-results-net-profit-rises-6-2-to-7-823-cr-revenue-up-10-2-126102300941_1.html",
+      "summary": "Infosys Q2 results: Net profit rises 6.2% to ₹7,823 cr, revenue up 10.2%"
+    },
+    {
+      "title": "LIVE | Infosys Q2 results: Profit, revenue, guidance and management commentary",
+      "source": "ET Online",
+      "published_time": "2026-10-23T10:55:40Z",
+      "url": "https://economictimes.indiatimes.com/markets/live-infosys-q2-results-profit-revenue-guidance-and-management-commentary/videoshow/135143498.cms",
+      "summary": "Infosys announces its Q2 FY27 results for the quarter ended 30 September 2026. Watch live for the company's financial performance, revenue growth, operating margins, large deal wins, AI business outlook and FY27 guidance."
+    },
+    {
+      "title": "Infosys Q2 Results: Net Profit Flat At Rs 7,823 Crore, Revenue Up 2% YoY; Dividend Declared",
+      "source": "Noor Ul Haq",
+      "published_time": "2026-10-23T11:03:09Z",
+      "url": "https://www.ndtvprofit.com/markets/infosys-q2-results-net-profit-flat-at-rs-7-823-crore-revenue-up-2-yoy-dividend-declared-12225320",
+      "summary": "Infosys reports a 0.7% sequential rise in Q2 net profit to Rs 7,823 crore, while revenue grows 2.1% to Rs 49,244 crore; FY27 revenue growth guidance narrowed to 1-2%."
+    },
+    {
+      "title": "Infosys FY27 Guidance Cut Counters $5.2B Deal Bonanza, AI Revenue Uptick; Margins Steady Amid External Headwinds",
+      "source": "Nikhil Tiwari",
+      "published_time": "2026-10-23T12:32:31Z",
+      "url": "https://www.ndtvprofit.com/business/infosys-fy27-guidance-cut-counters-5-2b-deal-bonanza-ai-revenue-uptick-margins-steady-amid-external-headwinds-12225847",
+      "summary": "Infosys' voluntary attrition rate declined to 12.7% in Q2 FY27 from 13% in the previous quarter and 14.3% a year earlier. Total employee headcount increased to 332,542 as the IT services major continued hiring."
+    },
+    {
+      "title": "Infosys CEO says macro recovery looks ‘a little bit more uneven’ than expected",
+      "source": "SECTIONS Infosys CEO says macro recovery looks than expected ET Online",
+      "published_time": "2026-10-23T12:37:58Z",
+      "url": "https://economictimes.indiatimes.com/news/company/corporate-trends/infosys-expected-tech-spending-recovery-looks-uneven-ceo-salil-parekh/articleshow/135145876.cms",
+      "summary": "Infosys has lowered its FY27 revenue growth forecast to 1-2%, indicating challenges in recovering technology spending. Chief executive Salil Parekh noted uneven market conditions, with some sectors yet to experience improvement. Despite growing AI-related revenue, traditional services are facing pro..."
+    },
+    {
+      "title": "Infosys drops after Q2 revenue falls short; reduces full-year forecast",
+      "source": "Currents",
+      "published_time": "2026-10-23T12:55:54Z",
+      "url": "https://seekingalpha.com/news/4656531-infosys-drops-after-q2-revenue-falls-short-reduces-full-year-forecast?source=feed_tag_india",
+      "summary": "Infosys drops after Q2 revenue falls short; reduces full-year forecast"
+    },
+    {
+      "title": "Infosys ADR Hits Day's Low At 8% On NYSE In Premarket Trade: Three Key Drags",
+      "source": "Riya Alex; Jasmeet Singh Ghai",
+      "published_time": "2026-10-23T13:05:14Z",
+      "url": "https://www.ndtvprofit.com/markets/infosys-adr-hits-days-low-at-8-on-nyse-in-premarket-trade-three-key-drags-12226115",
+      "summary": "The drop in ADRs come as the company has trimmed revenue growth guidance to 1-2% in constant currency (CC) terms from the earlier 1.5-3%."
+    },
+    {
+      "title": "Infosys forecasts 1%-2% FY'27 growth as $2B mega deal is expected to add over 1% next year (NYSE:INFY)",
+      "source": "SA Transcript Insights Editor; SA News Editor",
+      "published_time": "2026-10-23T15:51:12Z",
+      "url": "https://seekingalpha.com/news/4656665-infosys-forecasts-1-percentminus-2-percent-fy27-growth-as-2b-mega-deal-is-expected-to-add?source=feed_tag_india",
+      "summary": "Infosys Q2 FY2027 earnings show AI growth, $5.2B in large deals, and lower guidance amid pricing pressure."
+    },
+    {
+      "title": "Infosys Limited (INFY) Q2 2027 Earnings Call Transcript",
+      "source": "SA Transcripts",
+      "published_time": "2026-10-23T18:17:29Z",
+      "url": "https://seekingalpha.com/article/4956995-infosys-limited-infy-q2-2027-earnings-call-transcript?source=feed_tag_india",
+      "summary": "Infosys Limited (INFY) Q2 2027 Earnings Call October 23, 2026 8:30 AM EDTCompany ParticipantsSandeep Mahindroo - Executive VP, Financial Controller &..."
+    },
+    {
+      "title": "Infosys signals 1%-2% FY27 constant-currency growth as AI revenue reaches 10.5% and large deals hit $5.2B",
+      "source": "Currents",
+      "published_time": "2026-10-23T18:18:23Z",
+      "url": "https://seekingalpha.com/news/4656703-infosys-signals-1-percentminus-2-percent-fy27-constant-currency-growth-as-ai-revenue-reaches?source=feed_tag_india",
+      "summary": "Infosys signals 1%-2% FY27 constant-currency growth as AI revenue reaches 10.5% and large deals hit $5.2B"
+    },
+    {
+      "title": "Infosys ADRs tumble 6% as growth guidance cut to 1-2%",
+      "source": "Shilpa Phadnis",
+      "published_time": "2026-10-23T21:07:53Z",
+      "url": "https://timesofindia.indiatimes.com/business/india-business/infosys-adrs-tumble-6-as-growth-guidance-cut-to-1-2/articleshow/135155576.cms",
+      "summary": "Infosys had a lacklustre Q2, with its shares falling 6% in early trade on the NYSE after it cut FY27 revenue growth guidance to 1%-2% in constant currency terms from 1.5%-3% earlier. This is the company’s weakest growth outlook in seven years, reflecting subdued volumes, pricing pressure and weaknes..."
+    },
+    {
+      "title": "Stock Picks Today: Infosys, Kotak Mahindra Bank, Dr. Reddy's, SBI Cards, And More On Brokerages' Radar",
+      "source": "NDTV Profit Research",
+      "published_time": "2026-10-26T01:25:45Z",
+      "url": "https://www.ndtvprofit.com/markets/stock-picks-today-infosys-kotak-mahindra-bank-au-small-finance-bank-coforge-indusind-bank-cg-power-dr-reddys-bpcl-torrent-power-and-more-on-brokerages-12235286",
+      "summary": "Check out the top stock calls, initiations, upgrades, downgrades, and target price revisions from leading brokerages ahead of today's trade."
+    },
+    {
+      "title": "From Shriram Finance To SBI Cards: Buy, Add Or Reduce? Check HDFC Securities' Latest Q2 Review And Target Prices",
+      "source": "HDFC Securities Institutional Equities",
+      "published_time": "2026-10-26T03:36:18Z",
+      "url": "https://www.ndtvprofit.com/markets/infosys-dr-reddys-shriram-finance-torrent-pharma-hpcl-dcb-bank-sbi-cards-godrej-properties-q2-results-review-buy-add-or-reduce-check-hdfc-securities-t-12235587",
+      "summary": "HDFC Securities has reviewed the Q2 FY27 performance of nine companies, including Infosys, Shriram Finance, SBI Cards, IndusInd Bank, DCB Bank, Torrent Pharma, Dr. Reddy's Labs, HPCL and Godrej Properties, retaining its existing ratings across all 9 stocks while revising target prices for eight."
+    },
+    {
+      "title": "Infosys Share Price Falls Over 3% After Q2 Results. Should You Buy, Sell Or Hold The IT Stock?",
+      "source": "Ankit Gohel",
+      "published_time": "2026-10-26T03:53:14Z",
+      "url": "https://www.ndtvprofit.com/markets/infosys-share-price-falls-over-3-after-q2-results-should-you-buy-sell-or-hold-the-it-stock-12235634",
+      "summary": "The second largest IT services company, Infosys, reported 0.7% rise consolidated net profit to Rs 7,823 crore in the September quarter from Rs 7,769 crore in the June quarter."
+    },
+    {
+      "title": "Infosys Shares Fall Up To 4%: Why Is IT Stock Under Pressure Today After Q2 Results?",
+      "source": "Mohammad Haris; Business Desk",
+      "published_time": "2026-10-26T06:07:16Z",
+      "url": "https://www.news18.com/business/markets/infosys-shares-fall-up-to-4-why-is-it-stock-under-pressure-today-after-q2-results-10397480.html",
+      "summary": "Infosys shares dropped to an intraday low of Rs 1,107 on the NSE in the early trade on Monday, compared with the previous close of Rs 1,153.80."
+    },
+    {
+      "title": "From Infosys To RailTel: 6 Stocks Announce Dividends; Check Amounts, Record Dates",
+      "source": "Shilpy Bisht; Business Desk",
+      "published_time": "2026-10-26T08:22:45Z",
+      "url": "https://www.news18.com/business/markets/from-infosys-to-railtel-6-stocks-announce-dividends-check-amounts-record-dates-shil-ws-l-10397809.html",
+      "summary": "Infosys, CRISIL, Supreme Petrochem, Hypersoft Technologies, RailTel Corporation of India and Kajaria Ceramics have announced interim dividends and their latest quarterly results"
+    },
+    {
+      "title": "Infosys Stumbles As Much As 4% Post Q2: Is The Weak-Rupee IT Bubble Bursting?",
+      "source": "Mohammed Uzair Shaikh",
+      "published_time": "2026-10-26T09:21:45Z",
+      "url": "https://www.ndtvprofit.com/markets/infosys-stumbles-as-much-as-4-post-q2-is-the-weak-rupee-it-bubble-bursting-12236964",
+      "summary": "Infosys trimmed its growth forecast, and a sector that had been on a tear flinched. The bigger question is whether IT stocks ran too far, too fast, on numbers flattered by a weak rupee."
+    },
+    {
+      "title": "IT Stocks In Red: Nifty IT Index Drops Nearly 2% As Infosys, TCS, Mphasis Shares Lead Losses",
+      "source": "Ankit Gohel",
+      "published_time": "2026-10-27T04:35:53Z",
+      "url": "https://www.ndtvprofit.com/markets/it-stocks-in-red-nifty-it-index-drops-nearly-2-as-infosys-tcs-mphasis-shares-lead-losses-12240917",
+      "summary": "All constituents of the Nifty IT index traded in the red, with Infosys, Mphasis, Wipro, Tata Consultancy Services (TCS) and HCL Technologies among the major laggards."
+    },
+    {
+      "title": "IT Stocks In Red: Infosys, Coforge, Mphasis Lead Losses; Nifty IT Tanks Over 3%",
+      "source": "Maumita Mitra",
+      "published_time": "2026-10-28T05:37:59Z",
+      "url": "https://www.ndtvprofit.com/markets/it-stocks-in-red-infosys-coforge-mphasis-lead-losses-nifty-it-falls-over-3-12246549",
+      "summary": "The Nifty IT index slipped 3.38% as selling pressure hit large-cap and mid-cap IT stocks. Infosys, HCL Technologies, Tech Mahindra, and TCS were among the major losers"
+    }
+  ],
+  "news_events": [],
+  "fundamentals": {
+    "ticker": "INFY.NS",
+    "as_of": "2026-10-28T16:00:00+05:30",
+    "reason": "Past date: fundamentals sources return today's statements and give no announcement dates, so serving them for an earlier as_of would leak information from after that date."
+  },
+  "errors": []
+}

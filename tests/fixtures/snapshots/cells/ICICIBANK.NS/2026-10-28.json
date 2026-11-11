@@ -1,0 +1,41 @@
+{
+  "ticker": "ICICIBANK.NS",
+  "as_of": "2026-10-28T16:00:00+05:30",
+  "frozen_at": "2026-11-11T17:08:52+05:30",
+  "price_snapshot": {
+    "as_of_date": "2026-10-28",
+    "last_close": 1377.6,
+    "high_52w": 1463.1,
+    "high_52w_date": "2026-07-21",
+    "low_52w": 1205.9,
+    "low_52w_date": "2026-03-30",
+    "history_complete_52w": true,
+    "return_1d": -0.006705602422669377,
+    "return_5d": -0.005342960288808762,
+    "return_20d": 0.058064516129032295,
+    "return_60d": -0.04026752124843258
+  },
+  "news": [
+    {
+      "title": "Five Stocks To Buy Today, October 26: IPCA Labs, HBL Engineering, ICICI Bank, And More",
+      "source": "Soumil Kamat",
+      "published_time": "2026-10-25T23:43:56Z",
+      "url": "https://www.ndtvprofit.com/markets/five-stocks-to-buy-today-october-26-ipca-labs-hbl-engineering-icici-bank-ratnaveer-precision-inox-wind-12234686",
+      "summary": "Investors looking for near-term trading opportunities can track five stocks recommended by market experts on the basis of technical indicators and favourable risk-reward ratios."
+    },
+    {
+      "title": "Anup Bagchi Takes Charge As HDFC Bank CEO: Top Challenges As Stock Nears Fresh 52-Week Low",
+      "source": "NDTV Profit Desk",
+      "published_time": "2026-10-27T06:18:09Z",
+      "url": "https://www.ndtvprofit.com/markets/anup-bagchi-takes-charge-as-hdfc-bank-md-and-ceo-top-challenges-stock-nears-52-week-low-bse-sensex-today-12241098",
+      "summary": "On October 1, the Reserve Bank of India (RBI) approved Bagchi's appointment as MD and CEO of HDFC Bank for a three-year term beginning October 27. An ICICI Bank veteran, Bagchi was previously the MD and CEO of ICICI Prudential Life Insurance."
+    }
+  ],
+  "news_events": [],
+  "fundamentals": {
+    "ticker": "ICICIBANK.NS",
+    "as_of": "2026-10-28T16:00:00+05:30",
+    "reason": "Past date: fundamentals sources return today's statements and give no announcement dates, so serving them for an earlier as_of would leak information from after that date."
+  },
+  "errors": []
+}

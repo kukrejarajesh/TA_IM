@@ -1,0 +1,69 @@
+{
+  "ticker": "INFY.NS",
+  "as_of": "2026-10-21T16:00:00+05:30",
+  "frozen_at": "2026-11-11T17:08:52+05:30",
+  "price_snapshot": {
+    "as_of_date": "2026-10-21",
+    "last_close": 1141.8,
+    "high_52w": 1617.0,
+    "high_52w_date": "2026-01-16",
+    "low_52w": 963.2,
+    "low_52w_date": "2026-07-01",
+    "history_complete_52w": true,
+    "return_1d": 0.03292925637778166,
+    "return_5d": 0.09968217278243285,
+    "return_20d": 0.12470449172576825,
+    "return_60d": 0.12205188679245271
+  },
+  "news": [
+    {
+      "title": "IT Stocks Rally For Fourth Day: Why Are Infosys, TCS, Tech Mahindra Shares Rising? Know Key Reasons",
+      "source": "Mohammad Haris",
+      "published_time": "2026-10-16T05:16:26Z",
+      "url": "https://www.news18.com/business/markets/it-stocks-rally-for-fourth-day-why-are-infosys-tcs-tech-mahindra-shares-rising-know-key-reasons-10384343.html",
+      "summary": "The Nifty IT index surges 3.39% to 31,761.35 in morning trade, emerging as the biggest driver of the domestic market's recovery."
+    },
+    {
+      "title": "Market recap: Top-10 firms add Rs 3.65 lakh crore in mcap; TCS leads the gains",
+      "source": "Shivanghi Payal",
+      "published_time": "2026-10-18T07:25:29Z",
+      "url": "https://timesofindia.indiatimes.com/business/india-business/market-recap-top-10-firms-add-rs-3-65-lakh-crore-in-mcap-tcs-leads-the-gains/articleshow/135025500.cms",
+      "summary": "A strong week in the stock market added Rs 3.65 lakh crore to the combined market value of nine of India’s top-10 most valued firms. TCS led the gains, followed by Bharti Airtel and Infosys."
+    },
+    {
+      "title": "IT Stocks Split: Infosys, TechM Lead Losses; Persistent Systems, HCLTech Jump",
+      "source": "Khushi Maheshwari",
+      "published_time": "2026-10-19T04:53:57Z",
+      "url": "https://www.ndtvprofit.com/markets/it-stocks-slip-infosys-mphasis-lead-losses-amid-global-tech-rout-12204502",
+      "summary": "US equities faced investor pressure on Friday, with magnificent seven giants like Alphabet Inc. and Microsoft Corp. settling over 2% and nearly 2% lower."
+    },
+    {
+      "title": "Stocks To Watch Today: Sun Pharma, Schaeffler India, Infosys, Titan And Orchid Pharma",
+      "source": "NDTV Profit Research",
+      "published_time": "2026-10-21T00:30:01Z",
+      "url": "https://www.ndtvprofit.com/markets/stocks-to-watch-today-sun-pharma-schaeffler-india-infosys-titan-and-orchid-pharma-12212395",
+      "summary": "Here are the notable corporate announcements that came after Monday's market hours."
+    },
+    {
+      "title": "Stock Market Today, GIFT Nifty LIVE: Sensex, Nifty 50 Likely To Open Higher; Asian Markets Rally; Bajaj Fin, Infosys, Eternal In Focus",
+      "source": "Ankit Gohel",
+      "published_time": "2026-10-21T01:49:08Z",
+      "url": "https://www.ndtvprofit.com/markets/stock-market-today-gift-nifty-live-sensex-nifty50-gift-nifty-live-updates-today-jio-platforms-ipo-gold-rate-21-october-2026-12212950",
+      "summary": "Sensex, Nifty 50 Updates, Stock Market Live: Globally, Asian markets traded higher, with South Korean stocks leading the rally."
+    },
+    {
+      "title": "IT Stocks Rally: Wipro, Infosys, Birlasoft Shares Jump Over 3%; Jefferies Sees IT Re-Rating Potential",
+      "source": "Anirudh Saligrama",
+      "published_time": "2026-10-21T04:18:23Z",
+      "url": "https://www.ndtvprofit.com/markets/it-stocks-rally-wipro-infosys-birlasoft-shares-jump-over-3-12213312",
+      "summary": "Wipro, Infosys and Birlasoft lead IT stock gains, while Jefferies sees selective upside in large- and mid-cap stocks and raises large-cap target prices by 1418%."
+    }
+  ],
+  "news_events": [],
+  "fundamentals": {
+    "ticker": "INFY.NS",
+    "as_of": "2026-10-21T16:00:00+05:30",
+    "reason": "Past date: fundamentals sources return today's statements and give no announcement dates, so serving them for an earlier as_of would leak information from after that date."
+  },
+  "errors": []
+}
