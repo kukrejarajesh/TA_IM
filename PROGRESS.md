@@ -3,8 +3,35 @@
 ## Last session
 
 - Date: 2026-11-11
-- Story: S1.5 - fundamentals for current-date runs, `Withheld` for past dates (merged, PR #17; CI green, `passes`
-  now true)
+- Story: S1.8 - fixture set file and `freeze-fixtures` command (branch `s1.8-fixtures`; code, offline tests and the
+  real freeze are done; `passes` stays false until CI is green on the PR)
+- S1.8 real freeze: run 2026-11-11 17:08 IST (system Python, because Smart App Control blocks pandas in `.venv`).
+  20 cells for 5 tickers, no failures; 272 bars per ticker (2025-10-07 to 2026-11-11), ~490 KB of snapshots.
+  Past cells are `Withheld`, current cells have bfinance statements. News per cell ranges from 1 to 20 items; **20 is
+  Currents' page size, so those cells (RELIANCE 11-04, INFY 10-28, HDFCBANK 10-21, ICICIBANK 10-21) are probably
+  truncated**, and a thin cell (HDFCBANK 11-04 has 1 item) is simply what Currents returned. No news events were logged
+  (nothing dropped, no duplicates, no provider failure). A spot check of INFY 10-28 showed relevant Infosys results
+  coverage. Frozen as-is: bfinance unit quirks, no Nifty 50 prices.
+- S1.8 summary: new package `ta_in.fixtures`. `FixtureSet` (`tests/fixtures/fixture_set.json`: RELIANCE, TCS, INFY,
+  HDFCBANK, ICICIBANK; past dates 2026-10-21, 2026-10-28, 2026-11-04 at 16:00 IST; plus one "current" cell per ticker at
+  the freeze moment; `holding_period_trading_days: 5` for this MVP set, because 20 does not fit Currents' 30-day
+  limit; feature_list's pending default is untouched). `freeze_fixtures(...)` takes the EXISTING providers
+  (PriceProvider, IdentityProvider, a NewsService factory, FundamentalsService) and writes under `tests/fixtures/`:
+  `manifest.json`, `snapshots/prices/<T>.json` (all bars incl. after the last cell, for scoring),
+  `snapshots/identity/<T>.json`, `snapshots/cells/<T>/<date>.json` (PriceSnapshot, news + NewsService events,
+  fundamentals-or-Withheld, errors). It refuses to overwrite without `--force` and records a failing source as a
+  failure in the manifest (CLI exits 1), never hides it. `FrozenDataProvider(root)` implements `DataProvider` from those
+  files (filters then guards by `as_of`; `FixtureMissingError` if something was never frozen; `outcome_prices` for
+  scoring). Indicators are NOT stored: they are derived from the frozen prices by `compute_indicator`. `effective_end`
+  in `data/prices.py` is now public (was `_effective_end`). Tests: `tests/fixtures/test_freeze_offline.py` (fakes) and
+  `tests/fixtures/test_frozen_fixtures.py` (both criteria, run against a generated snapshot dir always and against the
+  committed real snapshots (23 tests pass locally now that `manifest.json` exists).
+- To run the freeze again (needs Kite token, `CURRENTS_API_KEY`, and a Python where pandas loads): `freeze-fixtures`
+  (`ta_in.fixtures.cli`; `--force` to replace). Re-freezing past cells later would lose news older than Currents'
+  30-day limit, so treat the committed snapshots as the source of truth. Nifty 50 benchmark prices are not frozen
+  (S7.2 must handle that).
+- Previous story: S1.5 - fundamentals for current-date runs, `Withheld` for past dates (merged, PR #17; CI green,
+  `passes` now true)
 - Summary: new package `ta_in.fundamentals`, same shape as `ta_in.news`. `FundamentalsService(providers,
   max_age=2 days, clock=...).get_fundamentals(ticker, *, as_of)` returns `FundamentalsData` (ticker, as_of,
   `fetched_at`, and the income statement, balance sheet and cash flow as `{"YYYY-MM-DD": {item: float | None}}`) or a
@@ -112,11 +139,18 @@
 - S1.7: verified price snapshot (merged, PR #15; criterion 2 covered up to render only)
 - S1.4: dated news from Currents (merged, PR #16)
 - S1.5: fundamentals via bfinance, `Withheld` for past dates (merged, PR #17)
+- S1.8: fixtures package, `freeze-fixtures` and the frozen snapshots (branch `s1.8-fixtures`; CI pending, `passes` false)
 
 ## Next
 
 - S1.8 (freeze fixtures) is next in list order; its dependencies S1.2-S1.7 are all done. It needs the fixture set
   (tickers and dates) decided first, which is still open.
+- Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
+  identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to
+  bfinance (which has its own 24-hour cache we do not control). Idea: a per-ticker on-disk news cache that records
+  each item with its publication time and the range covered (fetch only the missing part, like the price cache), which
+  also builds an archive past Currents' 30-day limit; fundamentals cached with `fetched_at`, served only for
+  current-date runs. It must never return anything dated after `as_of`, with an offline test that proves it.
 - Decide how to get news for past fixture dates (Currents reaches back 30 days only); see Open issues.
 - S2.1 (AgentState) is unblocked once S0.8 and S1.7 are merged; it should hold a `PriceSnapshot`.
 - S0.7 (baseline run) is blocked until S1.8 passes; it also needs the fixture set, which is still undecided.

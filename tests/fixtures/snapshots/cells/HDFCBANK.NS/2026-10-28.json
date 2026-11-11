@@ -1,0 +1,55 @@
+{
+  "ticker": "HDFCBANK.NS",
+  "as_of": "2026-10-28T16:00:00+05:30",
+  "frozen_at": "2026-11-11T17:08:52+05:30",
+  "price_snapshot": {
+    "as_of_date": "2026-10-28",
+    "last_close": 685.3,
+    "high_52w": 1009.5,
+    "high_52w_date": "2025-11-27",
+    "low_52w": 680.2,
+    "low_52w_date": "2026-10-27",
+    "history_complete_52w": true,
+    "return_1d": 0.007497794766245125,
+    "return_5d": -0.03062451375627706,
+    "return_20d": -0.046936930672415,
+    "return_60d": -0.0840072178039164
+  },
+  "news": [
+    {
+      "title": "Top 10 firms lose ₹1.55 trillion in mcap as HDFC Bank, Bajaj Finance fall",
+      "source": "Currents",
+      "published_time": "2026-10-25T08:54:21Z",
+      "url": "https://www.business-standard.com/markets/news/top-10-firms-lose-1-55-trillion-in-mcap-as-hdfc-bank-bajaj-finance-fall-126102500268_1.html",
+      "summary": "In a holiday-truncated week, the 30-share BSE Sensex tumbled 1,605.44 points, or 2.15 per cent, while the 50-share NSE Nifty slumped 546.15 points, or 2.36 per cent"
+    },
+    {
+      "title": "Anup Bagchi Takes Charge As HDFC Bank CEO: Top Challenges As Stock Nears Fresh 52-Week Low",
+      "source": "NDTV Profit Desk",
+      "published_time": "2026-10-27T06:18:09Z",
+      "url": "https://www.ndtvprofit.com/markets/anup-bagchi-takes-charge-as-hdfc-bank-md-and-ceo-top-challenges-stock-nears-52-week-low-bse-sensex-today-12241098",
+      "summary": "On October 1, the Reserve Bank of India (RBI) approved Bagchi's appointment as MD and CEO of HDFC Bank for a three-year term beginning October 27. An ICICI Bank veteran, Bagchi was previously the MD and CEO of ICICI Prudential Life Insurance."
+    },
+    {
+      "title": "A banking giant, a battered stock: Can HDFC Bank’s new chief turn the tide?",
+      "source": "ET Online",
+      "published_time": "2026-10-27T07:05:45Z",
+      "url": "https://economictimes.indiatimes.com/markets/stocks/a-banking-giant-a-battered-stock-can-hdfc-banks-new-chief-turn-the-tide/videoshow/135227258.cms",
+      "summary": "HDFC Bank’s stock is down nearly 29% from its peak, and new CEO Anup Bagchi faces a tough turnaround test. Can he revive growth, improve margins and unlock the value of the HDFC merger? We break down the challenges, growth outlook and what investors should watch next.Follow ET Markets for more marke..."
+    },
+    {
+      "title": "Buy, Sell Or Hold: Jio Platforms, Apollo Hospitals, Kaynes Tech, HDFC Bank, L&T, Tata Technologies | Ask Profit",
+      "source": "Soumil Kamat",
+      "published_time": "2026-10-28T06:49:16Z",
+      "url": "https://www.ndtvprofit.com/markets/buy-sell-or-hold-jio-platforms-apollo-hospitals-kaynes-tech-hdfc-bank-lt-tata-technologies-ask-profit-12246796",
+      "summary": "Market experts shared their insights on fundamentals and technical levels for key stocks"
+    }
+  ],
+  "news_events": [],
+  "fundamentals": {
+    "ticker": "HDFCBANK.NS",
+    "as_of": "2026-10-28T16:00:00+05:30",
+    "reason": "Past date: fundamentals sources return today's statements and give no announcement dates, so serving them for an earlier as_of would leak information from after that date."
+  },
+  "errors": []
+}

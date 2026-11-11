@@ -1,0 +1,185 @@
+{
+  "frozen_at": "2026-11-11T17:08:52+05:30",
+  "holding_period_trading_days": 5,
+  "sources": {
+    "prices": "kite",
+    "identity": "kite",
+    "news": "currents",
+    "fundamentals": "bfinance"
+  },
+  "tickers": [
+    {
+      "ticker": "RELIANCE.NS",
+      "bars": 272,
+      "first_bar": "2025-10-07",
+      "last_bar": "2026-11-11"
+    },
+    {
+      "ticker": "TCS.NS",
+      "bars": 272,
+      "first_bar": "2025-10-07",
+      "last_bar": "2026-11-11"
+    },
+    {
+      "ticker": "INFY.NS",
+      "bars": 272,
+      "first_bar": "2025-10-07",
+      "last_bar": "2026-11-11"
+    },
+    {
+      "ticker": "HDFCBANK.NS",
+      "bars": 272,
+      "first_bar": "2025-10-07",
+      "last_bar": "2026-11-11"
+    },
+    {
+      "ticker": "ICICIBANK.NS",
+      "bars": 272,
+      "first_bar": "2025-10-07",
+      "last_bar": "2026-11-11"
+    }
+  ],
+  "cells": [
+    {
+      "ticker": "RELIANCE.NS",
+      "as_of": "2026-10-21T16:00:00+05:30",
+      "news_count": 9,
+      "fundamentals": "withheld",
+      "errors": []
+    },
+    {
+      "ticker": "RELIANCE.NS",
+      "as_of": "2026-10-28T16:00:00+05:30",
+      "news_count": 7,
+      "fundamentals": "withheld",
+      "errors": []
+    },
+    {
+      "ticker": "RELIANCE.NS",
+      "as_of": "2026-11-04T16:00:00+05:30",
+      "news_count": 20,
+      "fundamentals": "withheld",
+      "errors": []
+    },
+    {
+      "ticker": "RELIANCE.NS",
+      "as_of": "2026-11-11T17:08:52+05:30",
+      "news_count": 2,
+      "fundamentals": "data",
+      "errors": []
+    },
+    {
+      "ticker": "TCS.NS",
+      "as_of": "2026-10-21T16:00:00+05:30",
+      "news_count": 5,
+      "fundamentals": "withheld",
+      "errors": []
+    },
+    {
+      "ticker": "TCS.NS",
+      "as_of": "2026-10-28T16:00:00+05:30",
+      "news_count": 5,
+      "fundamentals": "withheld",
+      "errors": []
+    },
+    {
+      "ticker": "TCS.NS",
+      "as_of": "2026-11-04T16:00:00+05:30",
+      "news_count": 3,
+      "fundamentals": "withheld",
+      "errors": []
+    },
+    {
+      "ticker": "TCS.NS",
+      "as_of": "2026-11-11T17:08:52+05:30",
+      "news_count": 2,
+      "fundamentals": "data",
+      "errors": []
+    },
+    {
+      "ticker": "INFY.NS",
+      "as_of": "2026-10-21T16:00:00+05:30",
+      "news_count": 6,
+      "fundamentals": "withheld",
+      "errors": []
+    },
+    {
+      "ticker": "INFY.NS",
+      "as_of": "2026-10-28T16:00:00+05:30",
+      "news_count": 20,
+      "fundamentals": "withheld",
+      "errors": []
+    },
+    {
+      "ticker": "INFY.NS",
+      "as_of": "2026-11-04T16:00:00+05:30",
+      "news_count": 3,
+      "fundamentals": "withheld",
+      "errors": []
+    },
+    {
+      "ticker": "INFY.NS",
+      "as_of": "2026-11-11T17:08:52+05:30",
+      "news_count": 3,
+      "fundamentals": "data",
+      "errors": []
+    },
+    {
+      "ticker": "HDFCBANK.NS",
+      "as_of": "2026-10-21T16:00:00+05:30",
+      "news_count": 20,
+      "fundamentals": "withheld",
+      "errors": []
+    },
+    {
+      "ticker": "HDFCBANK.NS",
+      "as_of": "2026-10-28T16:00:00+05:30",
+      "news_count": 4,
+      "fundamentals": "withheld",
+      "errors": []
+    },
+    {
+      "ticker": "HDFCBANK.NS",
+      "as_of": "2026-11-04T16:00:00+05:30",
+      "news_count": 1,
+      "fundamentals": "withheld",
+      "errors": []
+    },
+    {
+      "ticker": "HDFCBANK.NS",
+      "as_of": "2026-11-11T17:08:52+05:30",
+      "news_count": 3,
+      "fundamentals": "data",
+      "errors": []
+    },
+    {
+      "ticker": "ICICIBANK.NS",
+      "as_of": "2026-10-21T16:00:00+05:30",
+      "news_count": 18,
+      "fundamentals": "withheld",
+      "errors": []
+    },
+    {
+      "ticker": "ICICIBANK.NS",
+      "as_of": "2026-10-28T16:00:00+05:30",
+      "news_count": 2,
+      "fundamentals": "withheld",
+      "errors": []
+    },
+    {
+      "ticker": "ICICIBANK.NS",
+      "as_of": "2026-11-04T16:00:00+05:30",
+      "news_count": 2,
+      "fundamentals": "withheld",
+      "errors": []
+    },
+    {
+      "ticker": "ICICIBANK.NS",
+      "as_of": "2026-11-11T17:08:52+05:30",
+      "news_count": 4,
+      "fundamentals": "data",
+      "errors": []
+    }
+  ],
+  "failures": []
+}

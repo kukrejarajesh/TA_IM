@@ -1,0 +1,48 @@
+{
+  "ticker": "INFY.NS",
+  "as_of": "2026-11-04T16:00:00+05:30",
+  "frozen_at": "2026-11-11T17:08:52+05:30",
+  "price_snapshot": {
+    "as_of_date": "2026-11-04",
+    "last_close": 1128.2,
+    "high_52w": 1617.0,
+    "high_52w_date": "2026-01-16",
+    "low_52w": 963.2,
+    "low_52w_date": "2026-07-01",
+    "history_complete_52w": true,
+    "return_1d": -0.01733298493162605,
+    "return_5d": 0.02750455373406191,
+    "return_20d": 0.13833114721017048,
+    "return_60d": -0.017931754874651706
+  },
+  "news": [
+    {
+      "title": "Jefferies Cautious On IT: TCS Rated Underperform, Infosys Hold After $10 Billion FPI Outflow",
+      "source": "Pratiksha Thayil",
+      "published_time": "2026-10-29T14:56:50Z",
+      "url": "https://www.ndtvprofit.com/markets/jefferies-cautious-on-it-tcs-rated-underperform-infosys-hold-after-10-billion-fpi-outflow-12255131",
+      "summary": "The brokerage favours energy, utilities and real estate, with Reliance Industries among its preferred energy stocks."
+    },
+    {
+      "title": "Diwali Stock Picks 2026: BEL, SBI, Blue Star, Infosys Among Monarch Networth's Top 14 Bets For Samvat 2083",
+      "source": "Tanmay Tiwary",
+      "published_time": "2026-11-03T05:17:43Z",
+      "url": "https://www.ndtvprofit.com/markets/diwali-stock-picks-2026-bel-sbi-blue-star-infosys-among-monarch-networths-top-14-bets-for-samvat-2083-12274480",
+      "summary": "The brokerage's picks span sectors such as banking, defence, healthcare, technology, capital goods and consumer durables. Among the stocks on its list are Aster DM Healthcare, Bharat Electronics (BEL), Bharti Airtel, and SBI"
+    },
+    {
+      "title": "Global AI Stocks Fell On US Midterm Verdict. So Why Did TCS And Infosys Fall Too?",
+      "source": "Noor Ul Haq",
+      "published_time": "2026-11-04T10:25:23Z",
+      "url": "https://www.ndtvprofit.com/markets/global-ai-stocks-fell-on-us-midterm-verdict-so-why-did-tcs-and-infosys-fall-too-12282046",
+      "summary": "A global technology sell-off triggered by US midterm election results dragged Indian IT stocks lower, as investors questioned AI spending, outsourcing demand and the sector's earnings outlook."
+    }
+  ],
+  "news_events": [],
+  "fundamentals": {
+    "ticker": "INFY.NS",
+    "as_of": "2026-11-04T16:00:00+05:30",
+    "reason": "Past date: fundamentals sources return today's statements and give no announcement dates, so serving them for an earlier as_of would leak information from after that date."
+  },
+  "errors": []
+}

@@ -1,0 +1,41 @@
+{
+  "ticker": "ICICIBANK.NS",
+  "as_of": "2026-11-04T16:00:00+05:30",
+  "frozen_at": "2026-11-11T17:08:52+05:30",
+  "price_snapshot": {
+    "as_of_date": "2026-11-04",
+    "last_close": 1424.1,
+    "high_52w": 1463.1,
+    "high_52w_date": "2026-07-21",
+    "low_52w": 1205.9,
+    "low_52w_date": "2026-03-30",
+    "history_complete_52w": true,
+    "return_1d": -0.0002808002808003529,
+    "return_5d": 0.033754355400696934,
+    "return_20d": 0.06054512957998215,
+    "return_60d": 0.0021815622800844814
+  },
+  "news": [
+    {
+      "title": "Buy, Sell Or Hold: ICICI Bank, Hyundai Motor, Trent, Tata Steel, Schaeffler India And L&T Finance — Ask Profit",
+      "source": "Prajwal Jayaraj",
+      "published_time": "2026-10-29T17:13:44Z",
+      "url": "https://www.ndtvprofit.com/markets/buy-sell-or-hold-icici-bank-hyundai-motor-trent-tata-steel-schaeffler-india-and-l-t-finance-ask-profit-12255740",
+      "summary": "Market experts shared buy, sell and hold recommendations for an array of stocks including ICICI Bank, Hyundai Motor, Trent, Tata Steel, and L&T Finance."
+    },
+    {
+      "title": "Private Banks Outshine Nifty 50 In Earnings Upgrades; HSBC Sees More Room For Growth, Prefers ICICI Bank, Axis Bank, Kotak",
+      "source": "NDTV Profit News",
+      "published_time": "2026-11-03T02:56:28Z",
+      "url": "https://www.ndtvprofit.com/markets/private-banks-outshine-nifty-50-in-earnings-upgrades-hsbc-sees-more-room-for-growth-prefers-icici-bank-axis-bank-kotak-12274210",
+      "summary": "Among the four lenders, ICICI Bank and Kotak Mahindra Bank have witnessed the strongest earnings upgrade momentum, while Axis Bank and HDFC Bank have lagged"
+    }
+  ],
+  "news_events": [],
+  "fundamentals": {
+    "ticker": "ICICIBANK.NS",
+    "as_of": "2026-11-04T16:00:00+05:30",
+    "reason": "Past date: fundamentals sources return today's statements and give no announcement dates, so serving them for an earlier as_of would leak information from after that date."
+  },
+  "errors": []
+}

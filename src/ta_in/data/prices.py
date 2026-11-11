@@ -20,7 +20,7 @@ MARKET_CLOSE = time(15, 30)
 Fetcher = Callable[[str, date, date], list[PriceBar]]
 
 
-def _effective_end(as_of: datetime) -> date:
+def effective_end(as_of: datetime) -> date:
     """Last trading date whose bar was published at `as_of`."""
     local = as_of.astimezone(IST)
     return local.date() if local.time() >= MARKET_CLOSE else local.date() - timedelta(days=1)
@@ -62,7 +62,7 @@ class PriceProvider:
         if not ticker.endswith(".NS"):
             raise ValueError(f"only NSE tickers ending in .NS are supported, got {ticker!r}")
 
-        end = _effective_end(as_of)
+        end = effective_end(as_of)
         start = end - self._lookback
         entry = self._cache.load(ticker)
         if entry is None:

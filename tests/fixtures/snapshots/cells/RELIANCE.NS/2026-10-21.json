@@ -1,0 +1,90 @@
+{
+  "ticker": "RELIANCE.NS",
+  "as_of": "2026-10-21T16:00:00+05:30",
+  "frozen_at": "2026-11-11T17:08:52+05:30",
+  "price_snapshot": {
+    "as_of_date": "2026-10-21",
+    "last_close": 1209.0,
+    "high_52w": 1592.3,
+    "high_52w_date": "2026-01-02",
+    "low_52w": 1158.9,
+    "low_52w_date": "2026-10-12",
+    "history_complete_52w": true,
+    "return_1d": 0.005823627287853572,
+    "return_5d": 0.036256106968372226,
+    "return_20d": -0.030784030784030803,
+    "return_60d": -0.0539906103286385
+  },
+  "news": [
+    {
+      "title": "Jio IPO Price Band Set At Rs 1,065-1,119 Per Share; Issue To Open On Oct 21",
+      "source": "Pratiksha Thayil",
+      "published_time": "2026-10-14T15:21:15Z",
+      "url": "https://www.ndtvprofit.com/markets/jio-ipo-price-band-set-at-rs-1-065-1-119-per-share-issue-to-open-on-oct-21-12185913",
+      "summary": "The company has also reserved shares worth up to Rs 2,500 crore for eligible shareholders of Reliance Industries."
+    },
+    {
+      "title": "Jio Platforms files papers, IPO set to open on October 21",
+      "source": "Partha Sinha",
+      "published_time": "2026-10-14T20:18:58Z",
+      "url": "https://timesofindia.indiatimes.com/business/india-business/jio-platforms-files-papers-ipo-set-to-open-on-oct-21/articleshow/134951197.cms",
+      "summary": "Reliance Industries (RIL) on Wednesday said that the initial public offering (IPO) of Jio Platforms will open on Oct 21 and close on Oct 23. Jio Platforms, the holding company for the Mukesh Ambani-controlled group's telecom and digital initiatives, will offer about 27 crore shares in the IPO at a p..."
+    },
+    {
+      "title": "Fresh capital: How Jio’s market debut differs from recent mega-IPOs",
+      "source": "SECTIONS Fresh capital How Jio’s market debut differs",
+      "published_time": "2026-10-15T03:27:22Z",
+      "url": "https://economictimes.indiatimes.com/news/company/corporate-trends/fresh-capital-how-jios-market-debut-differs-from-recent-mega-ipos/articleshow/134956220.cms",
+      "summary": "Jio Platforms is gearing up for its initial public offering by pursuing a strategy focused solely on fresh shares. This means that no current investors will be liquidating their holdings during the IPO. The goal is to utilize the funds, estimated at around ₹27,500 crore, to alleviate the debt burden..."
+    },
+    {
+      "title": "Reliance Jio May Raise Tariffs By 12% — Here's Why",
+      "source": "NDTV Profit Desk",
+      "published_time": "2026-10-15T04:45:10Z",
+      "url": "https://www.ndtvprofit.com/markets/reliance-jio-rhp-brokerage-sees-tariffs-rising-by-12-percent-heres-why-12187808",
+      "summary": "Centrum Broking sees rising ARPU, driven by premiumisation and higher data consumption, as a key earnings lever ahead of Reliance Jio's upcoming IPO."
+    },
+    {
+      "title": "Reliance Industries Shares Rally 3% After Jio Platforms Announces IPO Price Band",
+      "source": "Mohammad Haris; Business Desk",
+      "published_time": "2026-10-15T07:04:15Z",
+      "url": "https://www.news18.com/business/markets/reliance-industries-shares-rally-3-after-jio-platforms-announces-ipo-price-band-ws-s-10382907.html",
+      "summary": "The Reliance Industries stock climbs 2.85% to Rs 1,209.50 on the BSE. On the National Stock Exchange (NSE), it advances 2.97% to Rs 1,209.50."
+    },
+    {
+      "title": "Nifty sees best day in 4 months, rally remains confined to largecap stocks",
+      "source": "Currents",
+      "published_time": "2026-10-15T14:37:34Z",
+      "url": "https://www.business-standard.com/markets/news/it-private-banks-lift-nifty-1-7-as-asian-ai-stocks-tumble-smallcaps-fall-126101501402_1.html",
+      "summary": "Nifty gains 1.66% as IT stocks, private banks and Reliance rally despite a sell-off in Asian technology shares; broader market breadth stays weak, with smallcap indices falling."
+    },
+    {
+      "title": "Reliance Industries, BSE lead mutual fund buys in September, shows data",
+      "source": "Shilpa Rangarajan",
+      "published_time": "2026-10-15T17:15:46Z",
+      "url": "https://www.business-standard.com/markets/news/reliance-industries-bse-lead-mutual-fund-buys-in-september-shows-data-126101501245_1.html",
+      "summary": "Mutual funds invested nearly ₹6,000 crore in Reliance Industries in September, making it the most-bought stock, followed by BSE with inflows exceeding ₹5,500 crore."
+    },
+    {
+      "title": "Brookfield's $2.53 bn bid for Reliance Worldwide clears 'go shop' hurdle",
+      "source": "Business Standard; Reuters",
+      "published_time": "2026-10-19T01:59:49Z",
+      "url": "https://www.business-standard.com/companies/news/brookfield-s-2-53-bn-bid-for-reliance-worldwide-clears-go-shop-hurdle-126101900027_1.html",
+      "summary": "The plumbing supplies firm agreed in Sep to a scheme implementation deed under which Brookfield Capital Partners and its affiliates would acquire all of Reliance Worldwide's shares for $3.38 apiece"
+    },
+    {
+      "title": "'Can't tell you whether to apply for Jio IPO': Nitin Kamath on Jio's rise, Zerodha's growth & what changed India's stock market",
+      "source": "Trending Desk",
+      "published_time": "2026-10-21T05:48:59Z",
+      "url": "https://economictimes.indiatimes.com/news/new-updates/cant-tell-you-whether-to-apply-for-jio-ipo-nitin-kamath-on-jios-rise-zerodhas-growth-what-changed-indias-stock-market/articleshow/135083236.cms",
+      "summary": "Zerodha co-founder Nitin Kamath has credited Reliance Jio and Bharti Airtel for helping transform Indias digital economy and expand participation in the stock market. As Jio Platforms $3.2 billion IPO draws investor interest, Kamath said affordable mobile data, Aadhaar and UPI helped create the digi..."
+    }
+  ],
+  "news_events": [],
+  "fundamentals": {
+    "ticker": "RELIANCE.NS",
+    "as_of": "2026-10-21T16:00:00+05:30",
+    "reason": "Past date: fundamentals sources return today's statements and give no announcement dates, so serving them for an earlier as_of would leak information from after that date."
+  },
+  "errors": []
+}
