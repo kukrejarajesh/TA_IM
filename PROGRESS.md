@@ -2,9 +2,43 @@
 
 ## Last session
 
-- Date: 2026-11-06
-- Story: S1.7 - verified price snapshot for grounding
-- Summary: `ta_in.data.snapshot` with `PriceSnapshot` (frozen: `as_of_date`, `last_close`, `high_52w` /
+- Date: 2026-11-11
+- Story: S1.5 - fundamentals for current-date runs, `Withheld` for past dates (branch `s1.5-fundamentals`; `passes`
+  stays false until CI is green)
+- Summary: new package `ta_in.fundamentals`, same shape as `ta_in.news`. `FundamentalsService(providers,
+  max_age=2 days, clock=...).get_fundamentals(ticker, *, as_of)` returns `FundamentalsData` (ticker, as_of,
+  `fetched_at`, and the income statement, balance sheet and cash flow as `{"YYYY-MM-DD": {item: float | None}}`) or a
+  frozen `Withheld(ticker, as_of, reason)`. A call is current-date when `as_of >= clock() - max_age`; anything older
+  is `Withheld` and **no provider is called**, so statements can never reach a backtest. If every provider fails or
+  returns nothing the result is `Withheld` listing each failure, never an exception. The clock is injected; the data
+  layer never reads "now" itself. Adapter: `BFinanceFundamentalsProvider` (bfinance 0.2.0, yearly statements via
+  `Ticker.get_income_stmt / get_balance_sheet / get_cash_flow(as_dict=True)`; bfinance accepts `.NS` itself). It
+  imports no pandas: NaN, infinity and non-numeric values become `None`, dates become strings, empty results raise
+  `FundamentalsUnavailableError`. It ignores `as_of` (bfinance cannot serve a past date). Tests:
+  `tests/data/test_fundamentals.py` (service, both criteria) and `tests/fundamentals/test_bfinance_adapter.py`; one
+  `live` smoke test (not run). `DataProvider.fundamentals` now returns `FundamentalsData | Withheld`. This branch
+  also carries the S1.4 `passes=true` flip and this file's S1.4 notes (folded in by decision).
+- Previous story: S1.4 - dated news up to as_of, deduplicated, as typed NewsItem (merged, PR #16; CI green)
+- S1.4 summary: new package `ta_in.news` (kept apart from `ta_in/data`, depends only on `ta_in.data.point_in_time`):
+  `NewsItem` (frozen; title, source, tz-aware `published_time` stored in UTC, url, `summary | None`),
+  `NewsProvider` Protocol (one adapter per source; must raise on failure), `NewsService(providers,
+  event_sink=None).get_news(ticker, *, as_of)` and `canonical_url`. The service collects from every provider (a
+  failing one is a `news.provider_failed` gap, never a crash), drops items published after `as_of` (compared as
+  instants, each drop logged as `news.dropped_after_as_of`), de-duplicates (canonical URL with tracking params
+  stripped, else title+time; the earliest copy wins), sorts oldest first, runs survivors through `guard_records`,
+  and returns `[]` (logged as `news.empty`) when there is nothing. Adapter: `CurrentsNewsProvider` (Currents API
+  only; NSE/jugaad-data was dropped by decision). It raises on HTTP errors and keeps the response body in the
+  message. New setting `CURRENTS_API_KEY` (unprefixed, optional `SecretStr`). Tests: `tests/data/test_news.py`
+  (service, all three criteria) and `tests/news/test_news_adapters.py`. `scripts/news_client.py` is a manual client
+  (key from the environment or `.env`; `--as-of`, `--name`, `--lookback-days`) that also prints the `NewsItem` shape.
+  Checked by hand against Currents on 2026-11-11 (current dates work). **Currents limits (see Open issues):** 30
+  days back from today, 7 days per request, and the query needs the company name (`INFY` alone gave 0 items).
+  The company-name lookup is not wired to `IdentityProvider` yet (S2.4 / S4.5). `DataProvider.news` now returns
+  `Sequence[NewsItem]`; `.claude/rules/data.md` now also covers `news/` and `fundamentals/`.
+- Local note: Windows Smart App Control blocks mypy and pandas here, so `verify` and the commit hooks cannot run
+  locally; S1.4 was committed with `--no-verify` (approved) and verified in CI instead.
+- Previous story: S1.7 - verified price snapshot for grounding
+- S1.7 summary: `ta_in.data.snapshot` with `PriceSnapshot` (frozen: `as_of_date`, `last_close`, `high_52w` /
   `low_52w` with their dates, `history_complete_52w`, `return_1d/5d/20d/60d`), `build_snapshot(bars, *, as_of)`
   and `render_snapshot(snapshot, ticker)`. Everything comes from `close` (not `adj_close`). The 52-week
   window is `date >= last_date - 365 days` (inclusive); the earliest date wins a tie; `history_complete_52w`
@@ -75,13 +109,15 @@
 - S1.2: daily OHLCV for .NS tickers via yfinance (merged to main), plus the Kite fetcher extension
 - S1.6: company identity from Kite, cached (merged, PR #13)
 - S1.3: indicators via stockstats (merged, PR #14)
-- S1.7: verified price snapshot (branch `s1.7-snapshot`, not pushed; criterion 2 covered up to render only)
+- S1.7: verified price snapshot (merged, PR #15; criterion 2 covered up to render only)
+- S1.4: dated news from Currents (merged, PR #16)
+- S1.5: fundamentals via bfinance, `Withheld` for past dates (branch `s1.5-fundamentals`; CI pending, `passes` false)
 
 ## Next
 
-- Sprint 2 is complete. Sprint 3 remaining: S1.4 news (needs a source decision; Kite has no news) and S1.5
-  fundamentals (Kite has no statements; yfinance was unreachable from the dev machine). Each provider must
-  refine the `DataProvider` return types and pass results through `guard_records`.
+- When CI is green on the S1.5 PR: set `passes=true` for S1.5 (one small follow-up commit), then S1.8 (freeze
+  fixtures; depends on S1.2-S1.7, so all but S1.8 itself are then done).
+- Decide how to get news for past fixture dates (Currents reaches back 30 days only); see Open issues.
 - S2.1 (AgentState) is unblocked once S0.8 and S1.7 are merged; it should hold a `PriceSnapshot`.
 - S0.7 (baseline run) is blocked until S1.8 passes; it also needs the fixture set, which is still undecided.
 
@@ -100,6 +136,15 @@
   only partly reaches back. Consequence: news for past fixture dates cannot be fetched on this plan. Options: pick
   fixture dates inside the window and freeze them (S1.8) before they age out, upgrade the plan, or add another
   dated source. Not decided. A 7-day window also returned only 3 items, some loosely related; query terms are untuned.
+- bfinance (S1.5) was run against the real service on 2026-11-11 with `scripts/fundamentals_client.py RELIANCE.NS`
+  (using the system Python, because Smart App Control blocks pandas inside this repo's `.venv`): it returned
+  `FundamentalsData` with 12 income-statement periods (newest 2026-03-31, 15 items), 13 balance-sheet periods (newest
+  **2026-09-30**, a half-year, 10 items) and 12 cash-flow periods (6 items). The `live` pytest has not been run, and
+  figures were not compared with filings. Quirks seen: periods differ between statements (balance sheet newer than
+  income); values look converted from rupees crore to rupees, and a growth figure came out as `Sales growth:
+  100000000.0`, so non-currency items (ratios, growth) look scaled too and must not be trusted or quoted without
+  checking. Yearly statements only (quarterly raises in bfinance). Past-dated fundamentals are withheld by design,
+  so past fixture cells have no fundamentals; the fundamentals analyst (S2.5) must say so.
 - **Currents allows at most 7 days per request** (`date_range: Max range is 7 days`, found by hand on 2026-11-11);
   `CurrentsNewsProvider` rejects `lookback_days` over 7. Longer history would need several requests, which the
   30-day lookback limit above also caps.
