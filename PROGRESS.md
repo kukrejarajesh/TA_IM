@@ -94,6 +94,20 @@
   `TA_KITE_ACCESS_TOKEN` exported in the shell, and the owner does not want secrets passed to test runs. It
   ignores `.env` (`Settings(_env_file=None)`). Kite was only checked by hand (see Last session).
 - Kite access tokens expire daily and history needs the paid Historical API add-on.
+- **Currents news only reaches back 30 days from the moment of the request** (found by hand on 2026-11-11:
+  HTTP 400 `date_range: Max lookback is 30 days` for as_of 2025-06-30; today's date worked). The adapter now
+  raises a clear error for an `as_of` older than that (a logged gap, no request sent) and clamps a window that
+  only partly reaches back. Consequence: news for past fixture dates cannot be fetched on this plan. Options: pick
+  fixture dates inside the window and freeze them (S1.8) before they age out, upgrade the plan, or add another
+  dated source. Not decided. A 7-day window also returned only 3 items, some loosely related; query terms are untuned.
+- **Currents allows at most 7 days per request** (`date_range: Max range is 7 days`, found by hand on 2026-11-11);
+  `CurrentsNewsProvider` rejects `lookback_days` over 7. Longer history would need several requests, which the
+  30-day lookback limit above also caps.
+- **Currents query needs the company name, not only the symbol.** `INFY.NS` searched as `"INFY"` gave 0 items;
+  `INFOSYS` gave 4 (by hand, 2026-11-11). The adapter now builds `("Infosys" OR "INFY") AND (finance terms)` when
+  given a `name_resolver` (legal suffixes like Limited are dropped). Nothing wires the real resolver yet: it should
+  be `IdentityProvider` / `CompanyIdentity.name` (S1.6), to be connected when the news analyst (S2.4) or `propagate`
+  (S4.5) builds the provider. `scripts/news_client.py --name "Infosys Limited"` passes a name by hand.
 - Kite history has no adjusted close (`adj_close == close`); split/bonus adjustment is not verified, and
   prices were not compared with another source.
 - `src/ta_in/data/sector_map.csv` is a 5-symbol seed (RELIANCE, TCS, INFY, HDFCBANK, ICICIBANK) and must be

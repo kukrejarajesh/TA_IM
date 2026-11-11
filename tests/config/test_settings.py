@@ -27,6 +27,17 @@ def clean_env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.chdir(tmp_path)
 
 
+def test_currents_key_is_optional_and_read_unprefixed(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ANTHROPIC_API_KEY", FAKE_KEY)
+    monkeypatch.delenv("CURRENTS_API_KEY", raising=False)
+    assert load_settings().currents_api_key is None
+    monkeypatch.setenv("CURRENTS_API_KEY", "cur-FAKE-123")
+    s = load_settings()
+    assert s.currents_api_key is not None
+    assert s.currents_api_key.get_secret_value() == "cur-FAKE-123"
+    assert "cur-FAKE-123" not in repr(s)
+
+
 def test_defaults_when_only_key_set(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ANTHROPIC_API_KEY", FAKE_KEY)
     s = load_settings()
