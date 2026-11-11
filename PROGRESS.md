@@ -3,8 +3,8 @@
 ## Last session
 
 - Date: 2026-11-11
-- Story: S1.8 - fixture set file and `freeze-fixtures` command (branch `s1.8-fixtures`; code, offline tests and the
-  real freeze are done; `passes` stays false until CI is green on the PR)
+- Story: S1.8 - fixture set file and `freeze-fixtures` command (merged, PR #19; CI green, `passes` now true).
+  **Epic 1 (data layer) is complete.**
 - S1.8 real freeze: run 2026-11-11 17:08 IST (system Python, because Smart App Control blocks pandas in `.venv`).
   20 cells for 5 tickers, no failures; 272 bars per ticker (2025-10-07 to 2026-11-11), ~490 KB of snapshots.
   Past cells are `Withheld`, current cells have bfinance statements. News per cell ranges from 1 to 20 items; **20 is
@@ -139,21 +139,22 @@
 - S1.7: verified price snapshot (merged, PR #15; criterion 2 covered up to render only)
 - S1.4: dated news from Currents (merged, PR #16)
 - S1.5: fundamentals via bfinance, `Withheld` for past dates (merged, PR #17)
-- S1.8: fixtures package, `freeze-fixtures` and the frozen snapshots (branch `s1.8-fixtures`; CI pending, `passes` false)
+- S1.8: fixtures package, `freeze-fixtures` and the frozen snapshots (merged, PR #19)
 
 ## Next
 
-- S1.8 (freeze fixtures) is next in list order; its dependencies S1.2-S1.7 are all done. It needs the fixture set
-  (tickers and dates) decided first, which is still open.
+- Next in list order: S0.7 (TradingAgents v0.7.0 baseline, run twice per fixture cell with the same two models; size
+  L). Its dependencies S1.8 and S0.8 are done and the fixture set is now decided (20 cells, see S1.8). Then Epic 2:
+  S2.1 (AgentState), S2.2 (agent loop), S2.3 onwards. Both can start; ask which first.
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to
   bfinance (which has its own 24-hour cache we do not control). Idea: a per-ticker on-disk news cache that records
   each item with its publication time and the range covered (fetch only the missing part, like the price cache), which
   also builds an archive past Currents' 30-day limit; fundamentals cached with `fetched_at`, served only for
   current-date runs. It must never return anything dated after `as_of`, with an offline test that proves it.
-- Decide how to get news for past fixture dates (Currents reaches back 30 days only); see Open issues.
-- S2.1 (AgentState) is unblocked once S0.8 and S1.7 are merged; it should hold a `PriceSnapshot`.
-- S0.7 (baseline run) is blocked until S1.8 passes; it also needs the fixture set, which is still undecided.
+- Past fixture news is now frozen for the MVP set; news for any NEW past date still cannot be fetched (Currents
+  reaches back 30 days only); see Open issues.
+- S2.1 (AgentState) is unblocked; it should hold a `PriceSnapshot` and use the frozen `FrozenDataProvider` in tests.
 
 ## Open issues
 
