@@ -3,8 +3,8 @@
 ## Last session
 
 - Date: 2026-11-11
-- Story: S1.5 - fundamentals for current-date runs, `Withheld` for past dates (branch `s1.5-fundamentals`; `passes`
-  stays false until CI is green)
+- Story: S1.5 - fundamentals for current-date runs, `Withheld` for past dates (merged, PR #17; CI green, `passes`
+  now true)
 - Summary: new package `ta_in.fundamentals`, same shape as `ta_in.news`. `FundamentalsService(providers,
   max_age=2 days, clock=...).get_fundamentals(ticker, *, as_of)` returns `FundamentalsData` (ticker, as_of,
   `fetched_at`, and the income statement, balance sheet and cash flow as `{"YYYY-MM-DD": {item: float | None}}`) or a
@@ -111,12 +111,12 @@
 - S1.3: indicators via stockstats (merged, PR #14)
 - S1.7: verified price snapshot (merged, PR #15; criterion 2 covered up to render only)
 - S1.4: dated news from Currents (merged, PR #16)
-- S1.5: fundamentals via bfinance, `Withheld` for past dates (branch `s1.5-fundamentals`; CI pending, `passes` false)
+- S1.5: fundamentals via bfinance, `Withheld` for past dates (merged, PR #17)
 
 ## Next
 
-- When CI is green on the S1.5 PR: set `passes=true` for S1.5 (one small follow-up commit), then S1.8 (freeze
-  fixtures; depends on S1.2-S1.7, so all but S1.8 itself are then done).
+- S1.8 (freeze fixtures) is next in list order; its dependencies S1.2-S1.7 are all done. It needs the fixture set
+  (tickers and dates) decided first, which is still open.
 - Decide how to get news for past fixture dates (Currents reaches back 30 days only); see Open issues.
 - S2.1 (AgentState) is unblocked once S0.8 and S1.7 are merged; it should hold a `PriceSnapshot`.
 - S0.7 (baseline run) is blocked until S1.8 passes; it also needs the fixture set, which is still undecided.
