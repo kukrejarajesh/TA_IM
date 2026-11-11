@@ -36,10 +36,12 @@ class Settings(BaseSettings):
     data_cache_dir: Path = Path(".data_cache")
     kite_api_key: SecretStr | None = None
     kite_access_token: SecretStr | None = None
+    currents_api_key: SecretStr | None = Field(default=None, validation_alias="CURRENTS_API_KEY")
 
 
 def _env_name(field: str) -> str:
-    return "ANTHROPIC_API_KEY" if field == "anthropic_api_key" else field
+    aliases = {"anthropic_api_key": "ANTHROPIC_API_KEY", "currents_api_key": "CURRENTS_API_KEY"}
+    return aliases.get(field, field)
 
 
 def load_settings() -> Settings:

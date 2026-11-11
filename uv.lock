@@ -1939,6 +1939,7 @@ dependencies = [
     { name = "kiteconnect" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
+    { name = "requests" },
     { name = "stockstats" },
     { name = "yfinance" },
 ]
@@ -1957,6 +1958,7 @@ requires-dist = [
     { name = "kiteconnect", specifier = ">=5.2.2" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
+    { name = "requests" },
     { name = "stockstats", specifier = ">=0.6.10" },
     { name = "yfinance", specifier = ">=1.8.0" },
 ]

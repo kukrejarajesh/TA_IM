@@ -4,10 +4,13 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from datetime import datetime
-from typing import Any, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
 from ta_in.data.identity import CompanyIdentity
 from ta_in.data.price_cache import PriceBar
+
+if TYPE_CHECKING:  # news imports the point-in-time guard from this package; avoid a cycle
+    from ta_in.news.models import NewsItem
 
 
 @runtime_checkable
@@ -21,7 +24,7 @@ class DataProvider(Protocol):
 
     def prices(self, ticker: str, *, as_of: datetime) -> Sequence[PriceBar]: ...
 
-    def news(self, ticker: str, *, as_of: datetime) -> Sequence[Any]: ...
+    def news(self, ticker: str, *, as_of: datetime) -> Sequence[NewsItem]: ...
 
     def fundamentals(self, ticker: str, *, as_of: datetime) -> Any: ...
 
