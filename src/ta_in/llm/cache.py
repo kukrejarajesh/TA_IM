@@ -29,10 +29,15 @@ class CacheError(Exception):
 
 @dataclass(frozen=True)
 class CacheEntry:
+    """A recorded response. `content` and `stop_reason` are absent in entries written before
+    tool use was cached; such an entry replays as one text block that ended the turn."""
+
     model: str
     text: str
     input_tokens: int
     output_tokens: int
+    content: list[dict[str, Any]] | None = None
+    stop_reason: str | None = None
 
 
 def _canonical(obj: Any) -> bytes:
@@ -75,11 +80,17 @@ class ResponseCache:
             data = json.loads(path.read_text(encoding="utf-8"))
             if data["version"] != CACHE_VERSION or data["key"] != key:
                 raise ValueError("version or key mismatch")
+            content = data.get("content")
+            if content is not None and not isinstance(content, list):
+                raise ValueError("content must be a list")
+            stop_reason = data.get("stop_reason")
             return CacheEntry(
                 model=str(data["model"]),
                 text=str(data["text"]),
                 input_tokens=int(data["input_tokens"]),
                 output_tokens=int(data["output_tokens"]),
+                content=content,
+                stop_reason=None if stop_reason is None else str(stop_reason),
             )
         except (ValueError, KeyError, TypeError, OSError) as err:
             raise CacheError(f"unreadable cache entry {key} ({path.name}): {err}") from None
@@ -94,6 +105,10 @@ class ResponseCache:
             "input_tokens": entry.input_tokens,
             "output_tokens": entry.output_tokens,
         }
+        if entry.content is not None:
+            data["content"] = entry.content
+        if entry.stop_reason is not None:
+            data["stop_reason"] = entry.stop_reason
         body = json.dumps(data, sort_keys=True, ensure_ascii=False, indent=2) + "\n"
         tmp = self._path(key).with_suffix(".tmp")
         tmp.write_bytes(body.encode("utf-8"))  # bytes: no CRLF translation on Windows

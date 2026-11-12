@@ -3,7 +3,23 @@
 ## Last session
 
 - Date: 2026-11-12
-- Story: S2.1 - typed `AgentState` (merged, PR #21; CI green, `passes` now true). New package `ta_in.state`: `AgentState` (frozen Pydantic: `run_id`, `ticker`, tz-aware `as_of`,
+- Story: S2.2 - generic agent loop with tool calling (branch `s2.2-agent-loop`; offline tests done, `passes` stays false
+  until CI is green). Two parts. **LLM layer, backward compatible:** `LLMClient.complete_turn(...)` returns an `LLMTurn`
+  (`ta_in.llm.turn`: `content` = the assistant `text` / `tool_use` blocks as plain dicts, `stop_reason`, `.text`,
+  `.tool_uses`); `complete()` is unchanged and returns `turn.text`. Retry, budget stop, cost records, record/replay and
+  tracing share one path. `CacheEntry` gained optional `content` and `stop_reason` (key and `CACHE_VERSION` unchanged; an
+  old text-only entry replays as one text block with `end_turn`), and the trace now fills `tool_calls`. **Loop:** new
+  package `ta_in.agents`: `Tool(name, description, input_model, fn)` (Pydantic input model gives the JSON schema),
+  `run_agent(client, *, agent, model, system, prompt, tools, max_steps=10, max_tokens)` -> `AgentResult(text, messages,
+  steps, stopped_by, tool_calls)`. It calls `complete_turn`, runs every `tool_use` block of a turn and answers them in ONE
+  user message of `tool_result` blocks, and stops on any stop reason other than `tool_use`. An unknown tool, input that
+  fails the Pydantic model, or an exception in a tool comes back as `{"error": {"type", "message"}}` with
+  `is_error: true`, so the model can recover. `PointInTimeError` and `BudgetExceeded` are deliberately NOT turned into tool
+  results; they propagate. The step limit counts model calls and ends with `stopped_by="step_limit"` and no exception.
+  The loop does not touch `AgentState`; agents (S2.3+) call it and write their own field. Tests: `tests/agents/test_loop.py`
+  (scripted fake model, no SDK) and `tests/llm/test_tool_turns.py` (real `LLMClient` + fake SDK: parsing, record and replay,
+  trace, and a whole agent run recorded then replayed with zero SDK calls). No real API call was made (no key).
+- Previous story: S2.1 - typed `AgentState` (merged, PR #21; CI green, `passes` now true). New package `ta_in.state`: `AgentState` (frozen Pydantic: `run_id`, `ticker`, tz-aware `as_of`,
   `identity`, `price_snapshot`, `market_report` / `news_report` / `fundamentals_report`, `investment_debate`, `plan`,
   `proposal`, `risk_debate`, `decision`; types come from `ta_in.schemas` and `ta_in.data`, none redefined),
   `AnalystReport` (`status` ok | gap with a required `gap_reason`, `insufficient_data` flag, ready for S2.6 / S2.7),
@@ -160,8 +176,7 @@
 
 ## Next
 
-- Next in list order: S2.2 (generic agent loop with tool calling; depends on S0.3, S0.4, S2.1, all done), then S2.3
-  (market analyst) and on through Epic 2. S0.7 / S7.3 are deferred (see Last session). S0.7 would need the upstream v0.7.0 code cloned into
+- After S2.2: S2.3 (market analyst) and on through Epic 2. S0.7 / S7.3 are deferred (see Last session). S0.7 would need the upstream v0.7.0 code cloned into
   its own environment, an Anthropic key, a budget and a data-source decision (own vendors vs our frozen snapshots).
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to
@@ -219,7 +234,8 @@
 - Default model IDs in `Settings` are provisional.
 - `Settings.temperature` is not sent to the API: sampling params are rejected on current models (400).
 - `pricing.py` prices are first-party list rates as of 2026-10; cache-read/creation tokens not costed yet.
-- Cache stores response text and token counts only; tool-use responses are not cached yet.
-- Trace `tool_calls` is always `[]` until `complete()` returns tool-use blocks. Trace time is summed call latency, not wall-clock.
+- Cache entries now store the content blocks and stop reason (S2.2), so tool-use responses are cached; `cost` of
+  cache-read/creation tokens is still not modelled. The trace fills `tool_calls` (S2.2); trace time is summed call latency,
+  not wall-clock.
 - Not ported from upstream yet: `SentimentBand`/`SentimentReport`, `render_*` helpers, `extract_rating`/`parse_rating` (in local `docs/`).
 - Upstream licence not recorded in the source comment; confirm the licence text before redistributing.

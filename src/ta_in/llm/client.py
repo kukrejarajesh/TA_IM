@@ -14,6 +14,7 @@ from ta_in.config import Settings
 from ta_in.llm.cache import CacheEntry, CacheMiss, CacheMode, ResponseCache, cache_key
 from ta_in.llm.pricing import cost_usd
 from ta_in.llm.trace import TraceWriter
+from ta_in.llm.turn import LLMTurn
 
 log = logging.getLogger(__name__)
 
@@ -71,7 +72,7 @@ class LLMClient:
         self._cache_mode = cache_mode if cache_mode is not None else CacheMode(settings.cache_mode)
         self._trace = trace
         self._clock = clock
-        self._last_text: str | None = None
+        self._last_turn: LLMTurn | None = None
         self.records: list[CallRecord] = []
 
     @property
@@ -87,8 +88,21 @@ class LLMClient:
         tools: list[dict[str, Any]] | None = None,
         agent: str = "default",
     ) -> str:
+        """One call, returning only the text. Use `complete_turn` when tools are involved."""
+        return self.complete_turn(model, system, messages, max_tokens, tools, agent).text
+
+    def complete_turn(
+        self,
+        model: str,
+        system: str,
+        messages: list[dict[str, Any]],
+        max_tokens: int = 16000,
+        tools: list[dict[str, Any]] | None = None,
+        agent: str = "default",
+    ) -> LLMTurn:
+        """One call, returning the assistant's text and tool_use blocks and why it stopped."""
         records_before = len(self.records)
-        self._last_text = None
+        self._last_turn = None
         error: str | None = None
         started = self._clock()
         try:
@@ -104,8 +118,12 @@ class LLMClient:
                     model=model,
                     system=system,
                     messages=messages,
-                    response=self._last_text,
-                    tool_calls=[],  # complete() returns text only for now
+                    response=self._last_turn.text if self._last_turn else None,
+                    tool_calls=(
+                        [u.model_dump() for u in self._last_turn.tool_uses]
+                        if self._last_turn
+                        else []
+                    ),
                     input_tokens=rec.input_tokens if rec else 0,
                     output_tokens=rec.output_tokens if rec else 0,
                     cost_usd=rec.cost_usd if rec else 0.0,
@@ -122,7 +140,7 @@ class LLMClient:
         messages: list[dict[str, Any]],
         max_tokens: int,
         tools: list[dict[str, Any]] | None,
-    ) -> str:
+    ) -> LLMTurn:
         key = cache_key(model, system, messages, tools, max_tokens)
         if self._cache_mode is CacheMode.REPLAY:
             return self._replay(key, model)
@@ -142,8 +160,8 @@ class LLMClient:
         if tools is not None:
             request["tools"] = tools
         response, attempts = self._call_with_retry(**request)
-        text = "".join(b.text for b in response.content if b.type == "text")
-        self._last_text = text
+        turn = LLMTurn.from_sdk(response)
+        self._last_turn = turn
         input_tokens = int(response.usage.input_tokens)
         output_tokens = int(response.usage.output_tokens)
         record = CallRecord(
@@ -155,7 +173,17 @@ class LLMClient:
         )
         self.records.append(record)
         if self._cache_mode is CacheMode.RECORD:
-            self._cache.put(key, CacheEntry(model, text, input_tokens, output_tokens))
+            self._cache.put(
+                key,
+                CacheEntry(
+                    model,
+                    turn.text,
+                    input_tokens,
+                    output_tokens,
+                    content=turn.content,
+                    stop_reason=turn.stop_reason,
+                ),
+            )
         log.info(
             "llm call model=%s in=%d out=%d cost_usd=%.6f attempts=%d total_usd=%.6f",
             model,
@@ -169,9 +197,9 @@ class LLMClient:
             raise BudgetExceeded(
                 f"budget ${self._budget_usd:.2f} exceeded (spent ${self.spent_usd:.4f})"
             )
-        return text
+        return turn
 
-    def _replay(self, key: str, model: str) -> str:
+    def _replay(self, key: str, model: str) -> LLMTurn:
         entry = self._cache.get(key)
         if entry is None:
             raise CacheMiss(f"no recorded response for model={model} key={key}")
@@ -185,9 +213,14 @@ class LLMClient:
                 cached=True,
             )
         )
-        self._last_text = entry.text
+        turn = (
+            LLMTurn(content=entry.content, stop_reason=entry.stop_reason or "end_turn")
+            if entry.content is not None
+            else LLMTurn.from_text(entry.text)
+        )
+        self._last_turn = turn
         log.info("llm replay model=%s key=%s", model, key[:12])
-        return entry.text
+        return turn
 
     def _get_sdk(self) -> Any:
         if self._sdk is None:
