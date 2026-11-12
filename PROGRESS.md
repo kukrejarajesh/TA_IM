@@ -3,8 +3,8 @@
 ## Last session
 
 - Date: 2026-11-12
-- Story: S2.2 - generic agent loop with tool calling (branch `s2.2-agent-loop`; offline tests done, `passes` stays false
-  until CI is green). Two parts. **LLM layer, backward compatible:** `LLMClient.complete_turn(...)` returns an `LLMTurn`
+- Story: S2.2 - generic agent loop with tool calling (merged, PR #23, CI green; `passes=true`).
+  Two parts. **LLM layer, backward compatible:** `LLMClient.complete_turn(...)` returns an `LLMTurn`
   (`ta_in.llm.turn`: `content` = the assistant `text` / `tool_use` blocks as plain dicts, `stop_reason`, `.text`,
   `.tool_uses`); `complete()` is unchanged and returns `turn.text`. Retry, budget stop, cost records, record/replay and
   tracing share one path. `CacheEntry` gained optional `content` and `stop_reason` (key and `CACHE_VERSION` unchanged; an
