@@ -24,6 +24,23 @@ def response(text: str = "ok", input_tokens: int = 1000, output_tokens: int = 50
     )
 
 
+def tool_use_response(
+    *uses: tuple[str, str, dict[str, Any]],
+    text: str = "",
+    input_tokens: int = 1000,
+    output_tokens: int = 500,
+    stop_reason: str = "tool_use",
+) -> Any:
+    """An SDK response with optional text and tool_use blocks: uses are (id, name, input)."""
+    blocks: list[Any] = [SimpleNamespace(type="text", text=text)] if text else []
+    blocks += [SimpleNamespace(type="tool_use", id=i, name=n, input=inp) for i, n, inp in uses]
+    return SimpleNamespace(
+        content=blocks,
+        usage=SimpleNamespace(input_tokens=input_tokens, output_tokens=output_tokens),
+        stop_reason=stop_reason,
+    )
+
+
 class FakeSDK:
     """Stands in for anthropic.Anthropic; replays a script of responses / exceptions."""
 
