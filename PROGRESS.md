@@ -2,10 +2,8 @@
 
 ## Last session
 
-- Date: 2026-11-11
-
-- Story: S2.1 - typed `AgentState` (branch `s2.1-agent-state`, stacked on `s1.8-progress`; `passes` stays false until
-  CI is green). New package `ta_in.state`: `AgentState` (frozen Pydantic: `run_id`, `ticker`, tz-aware `as_of`,
+- Date: 2026-11-12
+- Story: S2.1 - typed `AgentState` (merged, PR #21; CI green, `passes` now true). New package `ta_in.state`: `AgentState` (frozen Pydantic: `run_id`, `ticker`, tz-aware `as_of`,
   `identity`, `price_snapshot`, `market_report` / `news_report` / `fundamentals_report`, `investment_debate`, `plan`,
   `proposal`, `risk_debate`, `decision`; types come from `ta_in.schemas` and `ta_in.data`, none redefined),
   `AnalystReport` (`status` ok | gap with a required `gap_reason`, `insufficient_data` flag, ready for S2.6 / S2.7),
@@ -22,7 +20,6 @@
   build the system without them.** Stories behind them stay blocked: S2.8 (needs S0.7), S7.3 itself, and S7.5 (needs
   S7.3). Nothing in S2.1-S4.5, S7.1, S7.2, S7.4 or Epic 6 depends on them. Revisit when the rest is built.
 - Previous story: S1.8 - fixture set file and `freeze-fixtures` command (merged, PR #19; CI green, `passes` now true).
-
   **Epic 1 (data layer) is complete.**
 - S1.8 real freeze: run 2026-11-11 17:08 IST (system Python, because Smart App Control blocks pandas in `.venv`).
   20 cells for 5 tickers, no failures; 272 bars per ticker (2025-10-07 to 2026-11-11), ~490 KB of snapshots.
@@ -158,12 +155,13 @@
 - S1.7: verified price snapshot (merged, PR #15; criterion 2 covered up to render only)
 - S1.4: dated news from Currents (merged, PR #16)
 - S1.5: fundamentals via bfinance, `Withheld` for past dates (merged, PR #17)
-- S1.8: fixtures package, `freeze-fixtures` and the frozen snapshots (merged, PR #19)
+- S1.8: fixtures package, `freeze-fixtures` and the frozen snapshots (merged, PR #19, passes flipped in #20)
+- S2.1: typed `AgentState` with per-agent field ownership (merged, PR #21)
 
 ## Next
 
-- After S2.1: S2.2 (generic agent loop with tool calling; depends on S0.3, S0.4, S2.1), then S2.3 (market analyst) and
-  on through Epic 2. S0.7 / S7.3 are deferred (see Last session). S0.7 would need the upstream v0.7.0 code cloned into
+- Next in list order: S2.2 (generic agent loop with tool calling; depends on S0.3, S0.4, S2.1, all done), then S2.3
+  (market analyst) and on through Epic 2. S0.7 / S7.3 are deferred (see Last session). S0.7 would need the upstream v0.7.0 code cloned into
   its own environment, an Anthropic key, a budget and a data-source decision (own vendors vs our frozen snapshots).
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to
