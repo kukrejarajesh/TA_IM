@@ -3,8 +3,8 @@
 ## Last session
 
 - Date: 2026-11-12
-- Story: S2.3 - market analyst (branch `s2.3-market-analyst`; offline tests done, `passes` stays false until CI is
-  green). New `ta_in.agents.market_analyst.run_market_analyst(client, state, provider, *, model, max_steps=12)` returns a
+- Story: S2.3 - market analyst (merged, PR #25, CI green; `passes=true`).
+  New `ta_in.agents.market_analyst.run_market_analyst(client, state, provider, *, model, max_steps=12)` returns a
   new state with `market_report` set via `state.update`, so field ownership holds. `market_tools.MarketToolkit` binds two
   tools to one ticker and `as_of`: `get_price_history(days<=60)` and `get_indicator(kind, window, last)`. The model never
   passes a date, so it cannot ask for the future; bars go through `guard_records`, so a leaking provider raises
@@ -190,6 +190,7 @@
 - S1.8: fixtures package, `freeze-fixtures` and the frozen snapshots (merged, PR #19, passes flipped in #20)
 - S2.1: typed `AgentState` with per-agent field ownership (merged, PR #21)
 - S2.2: generic agent loop with tool calling (merged, PR #23, passes flipped in #24)
+- S2.3: market analyst with grounded report (merged, PR #25)
 
 ## Next
 
