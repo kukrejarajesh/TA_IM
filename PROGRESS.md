@@ -3,7 +3,24 @@
 ## Last session
 
 - Date: 2026-11-11
-- Story: S1.8 - fixture set file and `freeze-fixtures` command (merged, PR #19; CI green, `passes` now true).
+- Story: S2.1 - typed `AgentState` (branch `s2.1-agent-state`, stacked on `s1.8-progress`; `passes` stays false until
+  CI is green). New package `ta_in.state`: `AgentState` (frozen Pydantic: `run_id`, `ticker`, tz-aware `as_of`,
+  `identity`, `price_snapshot`, `market_report` / `news_report` / `fundamentals_report`, `investment_debate`, `plan`,
+  `proposal`, `risk_debate`, `decision`; types come from `ta_in.schemas` and `ta_in.data`, none redefined),
+  `AnalystReport` (`status` ok | gap with a required `gap_reason`, `insufficient_data` flag, ready for S2.6 / S2.7),
+  `DebateTurn`, `AgentName`, `OWNERSHIP` (the one table of who may write what) and `StateWriteError`. Writes only go
+  through `state.update(agent, replace=False, **fields)` and `state.add_turn(agent, turn)`, which return a NEW state and
+  refuse: a field the agent does not own, an unknown field, overwriting a field that is already set (set-once; pass
+  `replace=True` to overwrite deliberately), a debate turn spoken by someone else, or a wrongly typed value. Round
+  trip via `to_json()` / `from_json()` is lossless, tested with a fully populated state that uses the real frozen
+  RELIANCE identity and `PriceSnapshot`. 47 tests in `tests/state/test_agent_state.py`, no network, no pandas.
+  News and fundamentals data are deliberately not in the state (agents fetch them through tools; the state keeps the
+  reports and the snapshot). The S1.7 loose end ("agents receive the snapshot") is now covered up to the state; S2.2 /
+  S2.3 must still put `render_snapshot(...)` into the prompt context.
+- **Decision 2026-11-11: S0.7 (baseline) and S7.3 (parity report) stay in `feature_list.json` but are deferred; we
+  build the system without them.** Stories behind them stay blocked: S2.8 (needs S0.7), S7.3 itself, and S7.5 (needs
+  S7.3). Nothing in S2.1-S4.5, S7.1, S7.2, S7.4 or Epic 6 depends on them. Revisit when the rest is built.
+- Previous story: S1.8 - fixture set file and `freeze-fixtures` command (merged, PR #19; CI green, `passes` now true).
   **Epic 1 (data layer) is complete.**
 - S1.8 real freeze: run 2026-11-11 17:08 IST (system Python, because Smart App Control blocks pandas in `.venv`).
   20 cells for 5 tickers, no failures; 272 bars per ticker (2025-10-07 to 2026-11-11), ~490 KB of snapshots.
@@ -143,9 +160,9 @@
 
 ## Next
 
-- Next in list order: S0.7 (TradingAgents v0.7.0 baseline, run twice per fixture cell with the same two models; size
-  L). Its dependencies S1.8 and S0.8 are done and the fixture set is now decided (20 cells, see S1.8). Then Epic 2:
-  S2.1 (AgentState), S2.2 (agent loop), S2.3 onwards. Both can start; ask which first.
+- After S2.1: S2.2 (generic agent loop with tool calling; depends on S0.3, S0.4, S2.1), then S2.3 (market analyst) and
+  on through Epic 2. S0.7 / S7.3 are deferred (see Last session). S0.7 would need the upstream v0.7.0 code cloned into
+  its own environment, an Anthropic key, a budget and a data-source decision (own vendors vs our frozen snapshots).
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to
   bfinance (which has its own 24-hour cache we do not control). Idea: a per-ticker on-disk news cache that records
@@ -154,7 +171,7 @@
   current-date runs. It must never return anything dated after `as_of`, with an offline test that proves it.
 - Past fixture news is now frozen for the MVP set; news for any NEW past date still cannot be fetched (Currents
   reaches back 30 days only); see Open issues.
-- S2.1 (AgentState) is unblocked; it should hold a `PriceSnapshot` and use the frozen `FrozenDataProvider` in tests.
+- Agent tests should load data through `FrozenDataProvider` (`ta_in.fixtures`), never the live providers.
 
 ## Open issues
 
