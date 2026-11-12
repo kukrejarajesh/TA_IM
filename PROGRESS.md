@@ -3,7 +3,23 @@
 ## Last session
 
 - Date: 2026-11-12
-- Story: S2.2 - generic agent loop with tool calling (merged, PR #23, CI green; `passes=true`).
+- Story: S2.3 - market analyst (branch `s2.3-market-analyst`; offline tests done, `passes` stays false until CI is
+  green). New `ta_in.agents.market_analyst.run_market_analyst(client, state, provider, *, model, max_steps=12)` returns a
+  new state with `market_report` set via `state.update`, so field ownership holds. `market_tools.MarketToolkit` binds two
+  tools to one ticker and `as_of`: `get_price_history(days<=60)` and `get_indicator(kind, window, last)`. The model never
+  passes a date, so it cannot ask for the future; bars go through `guard_records`, so a leaking provider raises
+  `PointInTimeError` (it is not turned into a tool error). The agent chooses the indicators; code caps it at 8 distinct
+  (kind, window) pairs: the 9th gets a structured `IndicatorLimitReached` error, repeats are free, and a failed call does
+  not use up a slot. **Grounding (D6):** the prompt carries `render_snapshot(...)` and the company. Afterwards
+  `unverified_price_figures(text, snapshot, seen_values)` checks every `Rs` / `INR` / rupee-sign number in the report
+  against the snapshot prices and every value the tools showed, comparing at the decimals the figure is written with.
+  An unmatched figure, an empty answer, a cut-off answer (`max_tokens`) or the step limit becomes an explicit `gap`
+  report, never a wrong report. Percent figures are NOT checked yet (a percent may be a return or any other ratio, so
+  a check would reject valid text); the later claim-checker story should cover them. A missing snapshot raises
+  `ValueError`. Tests: `tests/agents/test_market_analyst.py` runs a scripted model over all 20 frozen fixture cells
+  (5 tickers x 4 dates) and checks each report is `ok` and grounded, plus the checker, the 8-indicator cap, point in
+  time and the gap cases. No real model was called (no key), so the first real run is still to do.
+- Previous story: S2.2 - generic agent loop with tool calling (merged, PR #23, CI green; `passes=true`).
   Two parts. **LLM layer, backward compatible:** `LLMClient.complete_turn(...)` returns an `LLMTurn`
   (`ta_in.llm.turn`: `content` = the assistant `text` / `tool_use` blocks as plain dicts, `stop_reason`, `.text`,
   `.tool_uses`); `complete()` is unchanged and returns `turn.text`. Retry, budget stop, cost records, record/replay and
@@ -173,10 +189,11 @@
 - S1.5: fundamentals via bfinance, `Withheld` for past dates (merged, PR #17)
 - S1.8: fixtures package, `freeze-fixtures` and the frozen snapshots (merged, PR #19, passes flipped in #20)
 - S2.1: typed `AgentState` with per-agent field ownership (merged, PR #21)
+- S2.2: generic agent loop with tool calling (merged, PR #23, passes flipped in #24)
 
 ## Next
 
-- After S2.2: S2.3 (market analyst) and on through Epic 2. S0.7 / S7.3 are deferred (see Last session). S0.7 would need the upstream v0.7.0 code cloned into
+- After S2.3: S2.6 / S2.7 / S2.4 / S2.5 and on through Epic 2. S0.7 / S7.3 are deferred (see Last session). S0.7 would need the upstream v0.7.0 code cloned into
   its own environment, an Anthropic key, a budget and a data-source decision (own vendors vs our frozen snapshots).
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to
