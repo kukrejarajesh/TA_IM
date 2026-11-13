@@ -57,7 +57,7 @@ class DebateError(Exception):
     """A researcher gave no usable argument, so the debate cannot continue."""
 
 
-def _report_block(name: str, report: AnalystReport | None) -> str:
+def report_block(name: str, report: AnalystReport | None) -> str:
     if report is None:
         head, body = "not run", "This analyst did not run."
     elif report.status == "gap":
@@ -69,7 +69,7 @@ def _report_block(name: str, report: AnalystReport | None) -> str:
     return f"[{name} report: {head}]\n{body}"
 
 
-def _history(turns: list[DebateTurn]) -> str:
+def debate_history(turns: list[DebateTurn]) -> str:
     if not turns:
         return "(no arguments yet)"
     return "\n\n".join(f"Round {t.round}, {t.speaker.value}:\n{t.text}" for t in turns)
@@ -87,15 +87,15 @@ def _prompt(state: AgentState, round_no: int, side: str) -> str:
         lines += ["No verified price snapshot is available.", ""]
     lines += [
         "<analyst_reports>",
-        _report_block("market", state.market_report),
+        report_block("market", state.market_report),
         "",
-        _report_block("news", state.news_report),
+        report_block("news", state.news_report),
         "",
-        _report_block("fundamentals", state.fundamentals_report),
+        report_block("fundamentals", state.fundamentals_report),
         "</analyst_reports>",
         "",
         "Debate so far:",
-        _history(state.investment_debate),
+        debate_history(state.investment_debate),
         "",
     ]
     opponent = state.investment_debate[-1] if state.investment_debate else None
