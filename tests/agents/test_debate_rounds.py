@@ -8,6 +8,7 @@ from types import SimpleNamespace
 from typing import Any
 
 import pytest
+from strict_api import reject_forced_tool_choice
 from test_market_analyst import FIXTURES, _cells, _state
 
 from ta_in.agents import run_research_team
@@ -44,7 +45,8 @@ class StorySDK:
 
     def _create(self, **kwargs: Any) -> Any:
         self.calls.append(kwargs)
-        if kwargs.get("tool_choice"):
+        reject_forced_tool_choice(kwargs)
+        if kwargs.get("tools"):  # only the research manager's structured call carries tools
             return self._plan(kwargs["messages"][0]["content"])
         system: str = kwargs["system"]
         prompt: str = kwargs["messages"][-1]["content"]

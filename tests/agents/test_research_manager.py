@@ -144,7 +144,7 @@ def test_deep_model_agent_name_and_forced_tool() -> None:
     run_research_manager(model, _base(), model=DEEP)
     assert model.models == [DEEP]
     assert model.calls[0]["agent"] == "research_manager"
-    assert model.calls[0]["tool_choice"] == {"type": "tool", "name": "submit_result"}
+    assert model.calls[0]["tool_choice"] is None  # a forced tool choice is rejected by the API
     assert "double quotes" in model.calls[0]["system"]
 
 

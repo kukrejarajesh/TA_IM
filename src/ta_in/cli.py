@@ -144,6 +144,7 @@ def _report(result: Any, ticker: str, as_of: datetime) -> str:
 
 def _run(args: argparse.Namespace, sdk: Any) -> int:
     # Heavy imports stay here so `--help` and the flag errors are fast and light.
+    import anthropic
     from pydantic import ValidationError
 
     from ta_in.agents import ANALYST_NAMES, DebateError, parse_analysts
@@ -221,6 +222,9 @@ def _run(args: argparse.Namespace, sdk: Any) -> int:
             "TA_CACHE_MODE=record, then replay it with the same flags.",
             file=sys.stderr,
         )
+        return 1
+    except anthropic.APIError as err:  # rejected request, connection failure, timeout, rate limit
+        print(f"ta-in: error: the model API failed: {type(err).__name__}: {err}", file=sys.stderr)
         return 1
     except (
         AllAnalystsFailedError,

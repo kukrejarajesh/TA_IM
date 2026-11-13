@@ -3,6 +3,8 @@
 from types import SimpleNamespace
 from typing import Any
 
+from strict_api import reject_forced_tool_choice
+
 from ta_in.config import Settings
 
 FAKE_KEY = "sk-ant-FAKE-0123456789-secret"
@@ -51,6 +53,7 @@ class FakeSDK:
 
     def _create(self, **kwargs: Any) -> Any:
         self.calls.append(kwargs)
+        reject_forced_tool_choice(kwargs)
         item = self.script.pop(0)
         if isinstance(item, Exception):
             raise item

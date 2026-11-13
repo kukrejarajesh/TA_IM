@@ -226,7 +226,7 @@ def test_model_agent_name_and_forced_tool() -> None:
     run_trader(model, _base(), model=MODEL)
     assert model.models == [MODEL]
     assert model.calls[0]["agent"] == "trader"
-    assert model.calls[0]["tool_choice"] == {"type": "tool", "name": "submit_result"}
+    assert model.calls[0]["tool_choice"] is None  # a forced tool choice is rejected by the API
 
 
 def test_prompt_holds_snapshot_plan_and_the_citable_references() -> None:
