@@ -72,7 +72,28 @@ def test_key_changes_with_every_component(changed: dict[str, Any]) -> None:
 
 def test_key_inputs_are_only_the_request_not_credentials() -> None:
     params = set(inspect.signature(cache_key).parameters)
-    assert params == {"model", "system", "messages", "tools", "max_tokens"}
+    assert params == {"model", "system", "messages", "tools", "max_tokens", "tool_choice"}
+
+
+def test_key_without_tool_choice_is_unchanged_so_old_recordings_still_replay() -> None:
+    # Hashes computed before tool_choice existed (S4.2): they must never move.
+    assert (
+        cache_key(MODEL, "sys", MSGS, TOOLS, 100)
+        == "f953eab18f188eda44ae2becf80ee5158bee809c48d47de3c54fae5f54a1c54e"
+    )
+    assert (
+        cache_key(MODEL, "sys", MSGS, None, 16000)
+        == "1402c303d2bfb33d964d8604c2fc192b6d23c5493cb3eee523a00b4467b98a99"
+    )
+
+
+def test_key_changes_with_tool_choice() -> None:
+    forced = {"type": "tool", "name": "t"}
+    plain = cache_key(MODEL, "sys", MSGS, TOOLS, 100)
+    assert cache_key(MODEL, "sys", MSGS, TOOLS, 100, forced) != plain
+    assert cache_key(MODEL, "sys", MSGS, TOOLS, 100, forced) != cache_key(
+        MODEL, "sys", MSGS, TOOLS, 100, {"type": "tool", "name": "u"}
+    )
 
 
 # ---- record / replay ----------------------------------------------------

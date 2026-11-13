@@ -52,9 +52,14 @@ def cache_key(
     messages: list[dict[str, Any]],
     tools: list[dict[str, Any]] | None,
     max_tokens: int,
+    tool_choice: dict[str, Any] | None = None,
 ) -> str:
-    """SHA-256 over the canonical JSON of everything that shapes the response."""
-    payload = {
+    """SHA-256 over the canonical JSON of everything that shapes the response.
+
+    `tool_choice` is part of the key only when set, so every key made before it existed (and so
+    every recording) stays valid.
+    """
+    payload: dict[str, Any] = {
         "v": CACHE_VERSION,
         "model": model,
         "system": system,
@@ -62,6 +67,8 @@ def cache_key(
         "tools": tools,
         "max_tokens": max_tokens,
     }
+    if tool_choice is not None:
+        payload["tool_choice"] = tool_choice
     return hashlib.sha256(_canonical(payload)).hexdigest()
 
 
