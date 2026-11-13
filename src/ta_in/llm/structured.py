@@ -13,6 +13,7 @@ are costed, traced and recorded for replay.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Protocol, TypeVar
 
@@ -71,7 +72,12 @@ def _raw(turn: LLMTurn) -> Any:
     return turn.text
 
 
-def _check(turn: LLMTurn, output_model: type[T], tool_name: str) -> tuple[T | None, str]:
+def _check(
+    turn: LLMTurn,
+    output_model: type[T],
+    tool_name: str,
+    check: Callable[[T], str | None] | None,
+) -> tuple[T | None, str]:
     """The parsed model, or None and a message saying what was wrong."""
     if turn.stop_reason == "max_tokens":
         return None, "the answer was cut off (max_tokens); keep it shorter"
@@ -85,9 +91,13 @@ def _check(turn: LLMTurn, output_model: type[T], tool_name: str) -> tuple[T | No
             f"call the {tool_name} tool exactly once and nothing else (you called: {names})",
         )
     try:
-        return output_model.model_validate(uses[0].input), ""
+        parsed = output_model.model_validate(uses[0].input)
     except ValidationError as err:
         return None, f"the tool input did not match the schema: {err}"[:MAX_ERROR_CHARS]
+    problem = check(parsed) if check is not None else None
+    if problem:
+        return None, problem[:MAX_ERROR_CHARS]
+    return parsed, ""
 
 
 def _retry_messages(
@@ -121,8 +131,14 @@ def complete_structured(
     trace: TraceWriter | None = None,
     tool_name: str = "submit_result",
     max_tokens: int = 16000,
+    check: Callable[[T], str | None] | None = None,
 ) -> T:
-    """Return a validated `output_model` from the model; at most two model calls are made."""
+    """Return a validated `output_model` from the model; at most two model calls are made.
+
+    `check` is an optional meaning check run on a schema-valid result. It returns None when the
+    result is fine, or a message when it is not; the message is treated like a validation error
+    (shown to the model on the one retry, and in the failure trace if the retry fails too).
+    """
     tool = {
         "name": tool_name,
         "description": f"Submit your final {output_model.__name__}. Call this exactly once.",
@@ -142,7 +158,7 @@ def complete_structured(
             agent=agent,
             tool_choice=choice,
         )
-        parsed, error = _check(turn, output_model, tool_name)
+        parsed, error = _check(turn, output_model, tool_name, check)
         if parsed is not None:
             return parsed
         attempts.append(Attempt(raw=_raw(turn), stop_reason=turn.stop_reason, error=error))

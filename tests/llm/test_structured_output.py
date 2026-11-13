@@ -241,3 +241,61 @@ def test_the_real_decision_models_work_through_it(
     dumped = out.model_dump(mode="json")
     assert all(dumped[key] == value for key, value in payload.items())
     assert len(sdk.calls) == 1
+
+
+# --- optional semantic check (S3.2) ----------------------------------------------------
+
+
+def no_buy(pick: Pick) -> str | None:
+    return "Buy is not allowed here" if pick.rating is PortfolioRating.BUY else None
+
+
+def run_checked(client: LLMClient, trace: TraceWriter | None = None) -> Pick:
+    return complete_structured(
+        client,
+        model=MODEL,
+        system="sys",
+        messages=MSGS,
+        output_model=Pick,
+        agent="mgr",
+        trace=trace,
+        check=no_buy,
+    )
+
+
+def sell(id_: str = "tu_s") -> Any:
+    return tool_use_response((id_, TOOL, {"rating": "Sell", "reason": "x"}))
+
+
+def test_a_passing_check_returns_at_once(tmp_path: Path) -> None:
+    client, sdk = make(tmp_path, [sell()])
+    assert run_checked(client).rating is PortfolioRating.SELL
+    assert len(sdk.calls) == 1
+
+
+def test_a_failing_check_uses_the_one_retry_and_shows_the_model_the_message(
+    tmp_path: Path,
+) -> None:
+    client, sdk = make(tmp_path, [good("tu_g"), sell()])  # GOOD is a Buy: the check rejects it
+    assert run_checked(client).rating is PortfolioRating.SELL
+    assert len(sdk.calls) == 2
+    block = sdk.calls[1]["messages"][2]["content"][0]
+    assert block["is_error"] is True
+    assert "Buy is not allowed here" in block["content"]
+
+
+def test_two_failed_checks_raise_and_trace_the_raw_output(tmp_path: Path) -> None:
+    trace = TraceWriter(tmp_path / "traces", run_id="run3")
+    client, sdk = make(tmp_path, [good("a"), good("b")], trace=trace)
+    with pytest.raises(StructuredOutputError) as exc:
+        run_checked(client, trace)
+    assert len(sdk.calls) == 2
+    assert [a.raw for a in exc.value.attempts] == [GOOD, GOOD]
+    failure = [e for e in events(trace) if e["type"] == "structured_failure"]
+    assert failure[0]["attempts"][0]["error"] == "Buy is not allowed here"
+
+
+def test_without_a_check_a_buy_is_fine(tmp_path: Path) -> None:
+    client, sdk = make(tmp_path, [good()])
+    assert run(client).rating is PortfolioRating.BUY
+    assert len(sdk.calls) == 1

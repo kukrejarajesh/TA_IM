@@ -3,8 +3,25 @@
 ## Last session
 
 - Date: 2026-11-13
-- Story: S4.2 - structured output through tool use (`passes=true`; on branch `s4.2-structured-output`, not yet
-  merged, CI not yet seen; mypy cannot run locally, so CI is the type check).
+- Story: S3.2 - research manager (`passes=true`; on branch `s3.2-research-manager`, not yet merged, CI not yet
+  seen; mypy cannot run locally, so CI is the type check).
+  New `ta_in.agents.research_manager.run_research_manager(client, state, *, model, trace=None)`: judges the debate
+  and sets `state.plan` to a validated `ResearchPlan` through `complete_structured`. `model` has no default (callers
+  pass `Settings.deep_model`); agent name `research_manager`. The prompt has the snapshot, the three reports inside
+  `<analyst_reports>` and the whole debate inside `<debate>` (data, never instructions). **Quote rule, enforced in
+  code:** `find_quotes(rationale, bull_texts, bear_texts)` takes every double-quoted passage (straight or curly quotes)
+  of at least `MIN_QUOTE_CHARS = 20` characters, compares ignoring case and whitespace runs, and needs one that sits
+  word for word inside a bull turn and one inside a bear turn; a plan that misses a side gets the one structured retry
+  (the message names the missing side), then `StructuredOutputError` with the raw plan in the trace. Only the
+  rationale is checked. A debate without both a bull and a bear turn raises `ValueError` before any call (S3.3 must
+  decide what 0 rounds means for the manager). **`complete_structured` gained an optional `check(parsed) -> str | None`**:
+  a returned message is treated like a validation error (retry, then loud failure); default `None` changes nothing.
+  `report_block` and `debate_history` in `researchers.py` are now public (were private) and shared. Test helper
+  `ScriptedModel.complete_turn` in `test_market_analyst.py` takes and records an optional `tool_choice`. Tests:
+  `tests/agents/test_research_manager.py` over all 20 frozen cells plus quote matching, retry, failure trace, model and
+  prompt, and `tests/llm/test_structured_output.py` for the `check` hook. No real model was called, so whether a real
+  model reliably copies quotes word for word is untested.
+- Previous story: S4.2 - structured output through tool use (merged, PR #38; `passes=true`).
   New `ta_in.llm.structured.complete_structured(client, *, model, system, messages, output_model, agent, trace=None,
   tool_name="submit_result", max_tokens=16000)` returns a validated instance of any Pydantic model (`ResearchPlan`,
   `TraderProposal`, `PortfolioDecision` all tested). It sends one tool built from `output_model.model_json_schema()`
@@ -303,11 +320,12 @@
 - S2.4: news analyst with citations, wired to the insufficient-data rule (merged, PR #32)
 - S2.5: fundamentals analyst, withheld stated without claims, Rs crore grounding (merged, PR #34)
 - S3.1: bull and bear researchers, debate rounds capped at 3 (merged, PR #36)
-- S4.2: structured output through a forced tool, one retry, loud failure with raw output in the trace (on a branch, awaiting CI and merge)
+- S4.2: structured output through a forced tool, one retry, loud failure with raw output in the trace (merged, PR #38)
+- S3.2: research manager on the deep tier, plan must quote both sides verbatim (on a branch, awaiting CI and merge)
 
 ## Next
 
-- After S4.2: S3.2 (research manager on the deep tier, uses `complete_structured` and `ResearchPlan`), then S3.3 (rounds 0 to 3, which only lowers the `debate_rounds` and `run_investment_debate` minimum to 0, and replay) and S4.1 (trader). S2.8 stays blocked behind the deferred S0.7.
+- After S3.2: S3.3 (debate rounds 0 to 3 with deterministic replay: lowers the `debate_rounds` and `run_investment_debate` minimum to 0, and must decide what the manager does with no debate), and S4.1 (trader, uses `complete_structured` and `TraderProposal`). S2.8 stays blocked behind the deferred S0.7.
 - Post-MVP: macro news (market-wide query, fixtures, analyst section); decided during S2.4 planning.
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to

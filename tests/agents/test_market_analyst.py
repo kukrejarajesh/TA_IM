@@ -49,6 +49,7 @@ class ScriptedModel:
         max_tokens: int = 16000,
         tools: list[dict[str, Any]] | None = None,
         agent: str = "default",
+        tool_choice: dict[str, Any] | None = None,
     ) -> LLMTurn:
         self.calls.append(
             {
@@ -56,6 +57,7 @@ class ScriptedModel:
                 "messages": copy.deepcopy(messages),
                 "tools": tools,
                 "agent": agent,
+                "tool_choice": tool_choice,
             }
         )
         item = self.script.pop(0)
