@@ -2,8 +2,27 @@
 
 ## Last session
 
-- Date: 2026-11-12
-- Story: S2.3 - market analyst (merged, PR #25, CI green; `passes=true`).
+- Date: 2026-11-13
+- Story: S2.6 - run selected analysts in parallel (branch `s2.6-parallel-analysts`; offline tests done, `passes` stays
+  false until CI is green). New `ta_in.agents.analysts`: `AnalystSpec(name, run)` where `run(state) -> state` sets that
+  analyst's report; `market_spec(client, provider, *, model)` and `default_specs(...)` (only "market" exists so far, S2.4 /
+  S2.5 add one entry each); `parse_analysts("market,news", available)` is what the future `--analysts` flag (S5.1) calls
+  (tolerates spaces, case, repeats; empty / unknown / not-yet-built names raise `ValueError` saying what is valid);
+  `run_analysts(state, specs, selected, *, max_workers=None)` runs ONLY the selected ones in a thread pool, each from the
+  same input state, then merges each analyst's own report field in selection order (not finishing order) through
+  `state.update`, so ownership still holds and a runner cannot write someone else's field. An ordinary exception becomes
+  a `gap` report `"<ExcType>: <message>"` (the other analysts still finish); a runner that wrote no report is a gap;
+  a gap the analyst returned itself passes through. `PointInTimeError` and `BudgetExceeded` are NOT turned into gaps:
+  they are raised after every analyst has finished. **LLM layer made thread-safe (needed for parallel use):** the client
+  no longer keeps per-call data on itself (`_last_turn` is gone; each call keeps its own turn and record), `records` is
+  appended under a lock, and `TraceWriter._write` is locked. Before the fix a shared client could put one analyst's
+  response or tokens on another's trace line. The budget check is before a call and again after it, so parallel calls can
+  overshoot the budget by the calls already in flight. Tests: `tests/agents/test_parallel_analysts.py` (barrier proves
+  real concurrency, selection, forced failure, fatal errors, merge order, the real market analyst beside a failing news
+  runner on a frozen cell) and `tests/llm/test_concurrency.py` (four threads in one client, each trace line has its own
+  response, tool calls and tokens). Trace summary `time_s` is still summed call latency, so for parallel agents it is
+  more than wall-clock time. No real model was called.
+- Previous story: S2.3 - market analyst (merged, PR #25, CI green; `passes=true`).
   New `ta_in.agents.market_analyst.run_market_analyst(client, state, provider, *, model, max_steps=12)` returns a
   new state with `market_report` set via `state.update`, so field ownership holds. `market_tools.MarketToolkit` binds two
   tools to one ticker and `as_of`: `get_price_history(days<=60)` and `get_indicator(kind, window, last)`. The model never
@@ -191,10 +210,11 @@
 - S2.1: typed `AgentState` with per-agent field ownership (merged, PR #21)
 - S2.2: generic agent loop with tool calling (merged, PR #23, passes flipped in #24)
 - S2.3: market analyst with grounded report (merged, PR #25)
+- S2.6: parallel analyst runner, thread-safe LLM client and trace (offline tests done; `passes` pending CI)
 
 ## Next
 
-- After S2.3: S2.6 / S2.7 / S2.4 / S2.5 and on through Epic 2. S0.7 / S7.3 are deferred (see Last session). S0.7 would need the upstream v0.7.0 code cloned into
+- After S2.6: S2.7 / S2.4 / S2.5 and on through Epic 2. S0.7 / S7.3 are deferred (see Last session). S0.7 would need the upstream v0.7.0 code cloned into
   its own environment, an Anthropic key, a budget and a data-source decision (own vendors vs our frozen snapshots).
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to

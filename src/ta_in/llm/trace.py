@@ -6,6 +6,7 @@ import json
 import os
 import secrets
 import sys
+import threading
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -28,13 +29,14 @@ class TraceWriter:
         self.run_id = run_id or new_run_id()
         trace_dir.mkdir(parents=True, exist_ok=True)
         self.path = trace_dir / f"{self.run_id}.jsonl"
+        self._lock = threading.Lock()  # analysts run in parallel threads and share one trace
         with self.path.open("xb"):  # "x": a second run can never reuse or overwrite a trace
             pass
         self._write({"type": "run_start", "run_id": self.run_id, "ts": _now()})
 
     def _write(self, event: dict[str, Any]) -> None:
         line = json.dumps(event, ensure_ascii=False, sort_keys=True) + "\n"
-        with self.path.open("ab") as f:  # bytes: no CRLF translation on Windows
+        with self._lock, self.path.open("ab") as f:  # bytes: no CRLF translation on Windows
             f.write(line.encode("utf-8"))
 
     def log_call(

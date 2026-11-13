@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import threading
 import time
 from collections.abc import Callable
 from typing import Any
@@ -40,6 +41,14 @@ class CallRecord(BaseModel):
     cached: bool = False
 
 
+class _Outcome:
+    """What one call produced, kept per call so parallel calls cannot mix up their trace lines."""
+
+    def __init__(self) -> None:
+        self.turn: LLMTurn | None = None
+        self.record: CallRecord | None = None
+
+
 class RetryPolicy(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -72,7 +81,7 @@ class LLMClient:
         self._cache_mode = cache_mode if cache_mode is not None else CacheMode(settings.cache_mode)
         self._trace = trace
         self._clock = clock
-        self._last_turn: LLMTurn | None = None
+        self._lock = threading.Lock()  # analysts share one client from parallel threads
         self.records: list[CallRecord] = []
 
     @property
@@ -100,30 +109,32 @@ class LLMClient:
         tools: list[dict[str, Any]] | None = None,
         agent: str = "default",
     ) -> LLMTurn:
-        """One call, returning the assistant's text and tool_use blocks and why it stopped."""
-        records_before = len(self.records)
-        self._last_turn = None
+        """One call, returning the assistant's text and tool_use blocks and why it stopped.
+
+        Safe to call from several threads at once: everything a call needs for its own trace line
+        lives in `outcome`, a per-call object, never on the client. The budget check happens
+        before a call and is re-checked after it, so parallel calls may overshoot the budget by
+        the calls that were already in flight.
+        """
+        outcome = _Outcome()
         error: str | None = None
         started = self._clock()
         try:
-            return self._complete(model, system, messages, max_tokens, tools)
+            return self._complete(model, system, messages, max_tokens, tools, outcome)
         except Exception as err:
             error = type(err).__name__
             raise
         finally:
             if self._trace is not None:
-                rec = self.records[-1] if len(self.records) > records_before else None
+                rec = outcome.record
+                turn = outcome.turn
                 self._trace.log_call(
                     agent=agent,
                     model=model,
                     system=system,
                     messages=messages,
-                    response=self._last_turn.text if self._last_turn else None,
-                    tool_calls=(
-                        [u.model_dump() for u in self._last_turn.tool_uses]
-                        if self._last_turn
-                        else []
-                    ),
+                    response=turn.text if turn else None,
+                    tool_calls=[u.model_dump() for u in turn.tool_uses] if turn else [],
                     input_tokens=rec.input_tokens if rec else 0,
                     output_tokens=rec.output_tokens if rec else 0,
                     cost_usd=rec.cost_usd if rec else 0.0,
@@ -140,10 +151,11 @@ class LLMClient:
         messages: list[dict[str, Any]],
         max_tokens: int,
         tools: list[dict[str, Any]] | None,
+        outcome: _Outcome,
     ) -> LLMTurn:
         key = cache_key(model, system, messages, tools, max_tokens)
         if self._cache_mode is CacheMode.REPLAY:
-            return self._replay(key, model)
+            return self._replay(key, model, outcome)
         if self.spent_usd >= self._budget_usd:
             raise BudgetExceeded(
                 f"budget ${self._budget_usd:.2f} already used (spent ${self.spent_usd:.4f})"
@@ -161,7 +173,7 @@ class LLMClient:
             request["tools"] = tools
         response, attempts = self._call_with_retry(**request)
         turn = LLMTurn.from_sdk(response)
-        self._last_turn = turn
+        outcome.turn = turn
         input_tokens = int(response.usage.input_tokens)
         output_tokens = int(response.usage.output_tokens)
         record = CallRecord(
@@ -171,7 +183,9 @@ class LLMClient:
             cost_usd=cost_usd(model, input_tokens, output_tokens),
             attempts=attempts,
         )
-        self.records.append(record)
+        outcome.record = record
+        with self._lock:
+            self.records.append(record)
         if self._cache_mode is CacheMode.RECORD:
             self._cache.put(
                 key,
@@ -199,26 +213,27 @@ class LLMClient:
             )
         return turn
 
-    def _replay(self, key: str, model: str) -> LLMTurn:
+    def _replay(self, key: str, model: str, outcome: _Outcome) -> LLMTurn:
         entry = self._cache.get(key)
         if entry is None:
             raise CacheMiss(f"no recorded response for model={model} key={key}")
-        self.records.append(
-            CallRecord(
-                model=entry.model,
-                input_tokens=entry.input_tokens,
-                output_tokens=entry.output_tokens,
-                cost_usd=0.0,
-                attempts=0,
-                cached=True,
-            )
+        record = CallRecord(
+            model=entry.model,
+            input_tokens=entry.input_tokens,
+            output_tokens=entry.output_tokens,
+            cost_usd=0.0,
+            attempts=0,
+            cached=True,
         )
+        outcome.record = record
+        with self._lock:
+            self.records.append(record)
         turn = (
             LLMTurn(content=entry.content, stop_reason=entry.stop_reason or "end_turn")
             if entry.content is not None
             else LLMTurn.from_text(entry.text)
         )
-        self._last_turn = turn
+        outcome.turn = turn
         log.info("llm replay model=%s key=%s", model, key[:12])
         return turn
 
