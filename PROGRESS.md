@@ -3,8 +3,32 @@
 ## Last session
 
 - Date: 2026-11-13
-- Story: S4.4 - portfolio manager (`passes=true`; on branch `s4.4-portfolio-manager`, not yet merged, CI not yet
-  seen; mypy cannot run locally, so CI is the type check).
+- Story: S4.5 - propagate (`passes=true`; on branch `s4.5-propagate`, not yet merged, CI not yet seen; mypy cannot
+  run locally, so CI is the type check). **This is the first story that runs the whole pipeline; it was only run
+  against a scripted fake SDK, never a real model, so a real end-to-end run, its cost and its time are still unseen.**
+  New `ta_in.propagate.propagate(ticker, as_of, *, settings, client, provider, trace=None, run_id=None,
+  analysts=("market","news","fundamentals"), clock=time.perf_counter) -> PropagateResult`. Order: `as_of` must be
+  timezone-aware; **identity first** (an unknown ticker raises before any model call); price snapshot from
+  `build_snapshot(provider.prices(...))`; `run_analysts`; `run_research_team` (`Settings.debate_rounds`);
+  `run_trader`; `run_risk_debate` (`Settings.risk_rounds`); `run_portfolio_manager`. **Tiers:** analysts, researchers,
+  trader and risk team use `Settings.quick_model`; the research manager and portfolio manager use `Settings.deep_model`.
+  If every selected analyst is a `gap`, `AllAnalystsFailedError` stops the run before the debate; some gaps continue and
+  stay visible. `PointInTimeError`, `BudgetExceeded`, `StructuredOutputError` and `DebateError` propagate.
+  `PropagateResult` (frozen): `state`, `decision`, `run_id`, `cost_usd`, `input_tokens`, `output_tokens`, `llm_calls`,
+  `cached_calls`, `elapsed_s` (injectable clock), `trace_path`. Cost, tokens and calls cover THIS run only (the
+  `client.records` added since it began), so a reused client reports each run separately; a replay reports
+  `cost_usd == 0.0` and every call cached. **Found while testing: the random run id made a replay differ from its
+  recording, so `propagate` takes an optional `run_id` (else the trace's, else a new one; a `run_id` that disagrees with
+  the trace is a `ValueError`); a replay matches a recording byte for byte only with the same id. The CLI's `--replay`
+  (S5.1) must pass the recorded run id.** Tests: `tests/replay/test_propagate.py` uses the real `LLMClient` and one
+  scripted SDK that answers every agent on the frozen RELIANCE 2026-10-21 cell (past date, so fundamentals are withheld
+  and make no call): the end-to-end run (11 calls), record then replay with an SDK that fails if called (identical
+  `state.to_json()`, zero calls), cost, tokens, calls and time reported, zero cost on replay, per-run reporting on a
+  reused client, trace totals equal the reported totals, each stage's model tier, the rounds settings (13, 6, 8 and
+  12 calls for 2/1, 0/0, 1/0 and 0/2), analyst selection, unknown ticker and naive `as_of` fail before any call, one
+  failing analyst leaves a gap, all failing stops the run. No recording is committed (a scripted one would look
+  real); a real-model record pass waits for an API key.
+- Previous story: S4.4 - portfolio manager (merged, PR #43; `passes=true`). Details:
   New `ta_in.agents.portfolio_manager.run_portfolio_manager(client, state, *, model, trace=None)`: weighs the
   snapshot, reports, research plan, trader proposal and risk debate and sets `state.decision` to a validated
   `PortfolioDecision` (five-tier rating) through `complete_structured`. `model` has no default (callers pass
@@ -401,11 +425,12 @@
 - S3.3: debate rounds 0 to 3, `run_research_team`, exact replay (merged, PR #40)
 - S4.1: trader returns a `TraderProposal` with a consistent rating and evidence that resolves in the state (merged, PR #41)
 - S4.3: risk team, three analysts each answering the other two, rounds 0 to 3 (merged, PR #42)
-- S4.4: portfolio manager on the deep tier, thesis must quote all three risk analysts (on a branch, awaiting CI and merge)
+- S4.4: portfolio manager on the deep tier, thesis must quote all three risk analysts (merged, PR #43)
+- S4.5: `propagate` runs the whole pipeline and reports cost and time; tested only with a scripted fake SDK (on a branch, awaiting CI and merge)
 
 ## Next
 
-- After S4.4: S4.5 (`propagate(ticker, date)`: identity first so a bad ticker stops the run, the three analysts through `run_analysts`, `run_research_team` (`Settings.debate_rounds`, quick and deep models), `run_trader` (quick), `run_risk_debate` (`Settings.risk_rounds`, quick), `run_portfolio_manager` (deep); one fixture cell must run end to end in replay mode inside CI, and total cost and time must be reported; it should also wire the real company-name resolver into the news provider, see Open issues). Then S5.1 (CLI), S5.2, S5.3 (claim checker, which also owns number grounding for the trader, the risk team and the portfolio manager) and Epics 6 and 7. S2.8 stays blocked behind the deferred S0.7.
+- After S4.5: S5.1 (CLI: `run --ticker --date --analysts --rounds`, plus `--replay`; it builds the provider (live, with the real company-name resolver wired into the news provider, see Open issues) and the `LLMClient`, calls `propagate`, prints the cost and time report, and for `--replay` must pass the recorded run id), then S5.2 (reports on disk), S5.3 (claim checker, which also owns number grounding for the trader, the risk team and the portfolio manager) and Epics 6 and 7. **Before relying on any of it, do one real record pass with an API key** (the first real call of every agent, the first real cost and time numbers, and whether real models quote verbatim as S3.2 and S4.4 require). S2.8 stays blocked behind the deferred S0.7.
 - Post-MVP: macro news (market-wide query, fixtures, analyst section); decided during S2.4 planning.
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to
