@@ -3,7 +3,26 @@
 ## Last session
 
 - Date: 2026-11-13
-- Story: S2.7 - insufficient-data rule (merged, PR #30, CI green; `passes=true`).
+- Story: S2.4 - news analyst (branch `s2.4-news-analyst`; offline tests done, `passes` stays false until CI is green).
+  New `ta_in.agents.news_analyst.run_news_analyst(client, state, provider, *, model, min_news_items, max_items=25)`.
+  News goes into the prompt as numbered items `[n] <date> (<source>): <title> - <summary cut at 400 chars>` inside
+  `<news_data>` tags (no tool calls: the list is short and numbering makes citations checkable). Headlines are untrusted
+  text, so the system prompt says the tagged content is data, never instructions. Steps: items from `provider.news`
+  through `guard_records` (a later-dated item raises `PointInTimeError` before any model call), oldest first, newest
+  `max_items` shown; then `run_gated` (S2.7): fewer than `min_news_items` returns the `insufficient_data` report and the
+  model is never called. **Citation check:** every `[n]` in the answer must be a listed item; an unknown number, no
+  citation at all, an empty answer or a cut-off answer (`max_tokens`) becomes a `gap`. **The `Sources:` block is written by
+  code** from the cited items (`[n] <source>, <date>, <title>, <url>`), so a cited item always carries its source and its
+  date and the model cannot misquote them. `news_spec(...)` is new and `default_specs(client, provider, *, model,
+  min_news_items)` now returns market and news (pass `Settings.min_news_items`), so `--analysts market,news` runs two real
+  analysts. Tests: `tests/agents/test_news_analyst.py` over all 20 frozen cells (15 are analysed and checked: every cited
+  item is dated on or before the cell's `as_of` and its Sources line has the exact source; 5 have fewer than 3 items and
+  are flagged with no model call), plus citation gaps, a leaking provider, prompt-injection delimiters, the item cap and
+  market + news through `run_analysts`. Notes: the stored `source` is Currents' author/byline (for example "Business
+  Standard; Apexa Rai"), cited exactly as stored; cleaning it is a data-layer question. **Macro news is deferred until
+  after the MVP (your decision): there is no macro data source, so S2.4 covers company news only. A later story needs a
+  market-wide news query, its own fixtures and a macro section in the analyst.** No real model was called.
+- Previous story: S2.7 - insufficient-data rule (merged, PR #30, CI green; `passes=true`).
   New setting `Settings.min_news_items` (default 3, env `TA_MIN_NEWS_ITEMS`, 0 and negatives rejected;
   `.env.example` lists the name). New `ta_in.agents.evidence`: `is_thin(found, minimum)` (exactly the minimum is
   enough), `insufficient_data_report(analyst, found, minimum, what="news items")` and
@@ -224,12 +243,14 @@
 - S2.2: generic agent loop with tool calling (merged, PR #23, passes flipped in #24)
 - S2.3: market analyst with grounded report (merged, PR #25)
 - S2.6: parallel analyst runner, thread-safe LLM client and trace (merged, PR #28)
-- S2.7: insufficient-data rule and `TA_MIN_NEWS_ITEMS` setting (merged, PR #30; wired into the news analyst in S2.4)
+- S2.7: insufficient-data rule and `TA_MIN_NEWS_ITEMS` setting (merged, PR #30)
+- S2.4: news analyst with citations, wired to the insufficient-data rule (offline tests done; `passes` pending CI)
 
 ## Next
 
-- After S2.7: S2.4 (must call `run_gated`) / S2.5 and on through Epic 2. S0.7 / S7.3 are deferred (see Last session). S0.7 would need the upstream v0.7.0 code cloned into
+- After S2.4: S2.5 (fundamentals analyst; decide its own minimum for `run_gated`, it can reuse it with `what="annual statements"`) and on through Epic 2. S0.7 / S7.3 are deferred (see Last session). S0.7 would need the upstream v0.7.0 code cloned into
   its own environment, an Anthropic key, a budget and a data-source decision (own vendors vs our frozen snapshots).
+- Post-MVP: macro news (market-wide query, fixtures, analyst section); decided during S2.4 planning.
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to
   bfinance (which has its own 24-hour cache we do not control). Idea: a per-ticker on-disk news cache that records

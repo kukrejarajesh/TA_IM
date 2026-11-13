@@ -19,6 +19,7 @@ from typing import Any
 
 from ta_in.agents.loop import TurnClient
 from ta_in.agents.market_analyst import run_market_analyst
+from ta_in.agents.news_analyst import run_news_analyst
 from ta_in.data.point_in_time import PointInTimeError
 from ta_in.data.provider import DataProvider
 from ta_in.llm.client import BudgetExceeded
@@ -54,11 +55,28 @@ def market_spec(client: TurnClient, provider: DataProvider, *, model: str) -> An
     )
 
 
+def news_spec(
+    client: TurnClient, provider: DataProvider, *, model: str, min_news_items: int
+) -> AnalystSpec:
+    return AnalystSpec(
+        name="news",
+        run=lambda state: run_news_analyst(
+            client, state, provider, model=model, min_news_items=min_news_items
+        ),
+    )
+
+
 def default_specs(
-    client: TurnClient, provider: DataProvider, *, model: str
+    client: TurnClient, provider: DataProvider, *, model: str, min_news_items: int
 ) -> dict[str, AnalystSpec]:
-    """The analysts that exist so far. News (S2.4) and fundamentals (S2.5) add their own."""
-    return {"market": market_spec(client, provider, model=model)}
+    """The analysts that exist so far. Fundamentals (S2.5) adds its own.
+
+    Pass `Settings.min_news_items` as `min_news_items`.
+    """
+    return {
+        "market": market_spec(client, provider, model=model),
+        "news": news_spec(client, provider, model=model, min_news_items=min_news_items),
+    }
 
 
 def parse_analysts(text: str, available: Iterable[str]) -> list[str]:
