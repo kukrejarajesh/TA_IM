@@ -3,7 +3,30 @@
 ## Last session
 
 - Date: 2026-11-13
-- Story: S2.4 - news analyst (merged, PR #32, CI green; `passes=true`).
+- Story: S2.5 - fundamentals analyst (branch `s2.5-fundamentals-analyst`; offline tests done, `passes` stays false until
+  CI is green). New `ta_in.agents.fundamentals_analyst.run_fundamentals_analyst(client, state, provider, *, model,
+  years=5)`; statements go into the prompt (no tool calls). **`Withheld` (all 15 past-dated fixture cells, or an outage):
+  the report says "Fundamentals withheld for <ticker> as of <date>: <reason> No fundamental analysis was made and no
+  fundamental claims are made.", is `status="ok"` with `insufficient_data=True`, contains no figure, and the model is never
+  called.** A statement period dated after `as_of` raises `PointInTimeError` before any model call. Fewer than
+  `MIN_STATEMENT_YEARS` (2, a module constant) yearly income-statement periods is flagged through `run_gated` (S2.7). What the
+  model sees: the latest `years` periods per statement, currency rows converted exactly to Rs crore (rupees / 10,000,000,
+  2 decimals), `EPS` rows unscaled as Rs per share, and rows named with `%`, `/`, growth, margin, rate, ratio or payout
+  DROPPED because the source scales some of them wrongly (the omitted names are listed in the prompt; the model derives
+  growth and margins from the table). Checked on the five current fixtures: it keeps revenue, expenses, operating and net
+  income, interest, depreciation, EPS, balance-sheet and cash-flow rows, and drops Sales growth, Revenue growth, OPM %,
+  Tax Rate, Dividend Payout %, Financing Margin % and the CFO/EBITDA row. **Grounding:** `unverified_crore_figures(text,
+  shown_values)` checks every `Rs <n> crore` amount against the values shown (at the decimals written, commas ignored);
+  amounts in lakh, lakh crore, million, billion or trillion cannot be verified and count as unverified. An unverified
+  amount, an empty answer or a cut-off answer is a `gap`. Per-share and percent figures are not checked yet. The
+  statements sit inside `<statements_data>` and the system prompt calls them data, not instructions.
+  `fundamentals_spec(...)` is new and `default_specs(...)` now returns market, news and fundamentals, so all three real
+  analysts run through `run_analysts`. Tests: `tests/agents/test_fundamentals_analyst.py` over all 20 frozen cells (15
+  withheld without claims, 5 analysed), the row filter and crore conversion, grounding, thin data, point in time,
+  prompt-injection delimiters and the three-analyst runner; `test_news_analyst.py` now expects the three names from
+  `default_specs`. Notes: a current balance sheet can include a half-year date (TCS shows 2026-09-30 beside the March year
+  ends) while the prompt calls periods yearly; the dates are in the table, so it is visible. No real model was called.
+- Previous story: S2.4 - news analyst (merged, PR #32, CI green; `passes=true`).
   New `ta_in.agents.news_analyst.run_news_analyst(client, state, provider, *, model, min_news_items, max_items=25)`.
   News goes into the prompt as numbered items `[n] <date> (<source>): <title> - <summary cut at 400 chars>` inside
   `<news_data>` tags (no tool calls: the list is short and numbering makes citations checkable). Headlines are untrusted
@@ -245,11 +268,11 @@
 - S2.6: parallel analyst runner, thread-safe LLM client and trace (merged, PR #28)
 - S2.7: insufficient-data rule and `TA_MIN_NEWS_ITEMS` setting (merged, PR #30)
 - S2.4: news analyst with citations, wired to the insufficient-data rule (merged, PR #32)
+- S2.5: fundamentals analyst, withheld stated without claims, Rs crore grounding (offline tests done; `passes` pending CI)
 
 ## Next
 
-- After S2.4: S2.5 (fundamentals analyst; decide its own minimum for `run_gated`, it can reuse it with `what="annual statements"`) and on through Epic 2. S0.7 / S7.3 are deferred (see Last session). S0.7 would need the upstream v0.7.0 code cloned into
-  its own environment, an Anthropic key, a budget and a data-source decision (own vendors vs our frozen snapshots).
+- After S2.5: Epic 3 / Epic 4. In list order S3.1 (bull and bear researchers, depends on S2.6) is next, then S4.2 (structured output) before S3.2. S2.8 stays blocked behind the deferred S0.7.
 - Post-MVP: macro news (market-wide query, fixtures, analyst section); decided during S2.4 planning.
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to

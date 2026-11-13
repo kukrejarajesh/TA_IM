@@ -280,11 +280,11 @@ def test_market_and_news_run_together_through_the_runner() -> None:
     assert out.fundamentals_report is None
 
 
-def test_default_specs_now_include_news() -> None:
+def test_default_specs_include_news() -> None:
     specs = default_specs(
         ScriptedModel([]), FrozenDataProvider(FIXTURES), model=MODEL, min_news_items=3
     )  # type: ignore[arg-type]
-    assert sorted(specs) == ["market", "news"]
+    assert sorted(specs) == ["fundamentals", "market", "news"]
     assert parse_analysts("news", specs) == ["news"]
 
 
