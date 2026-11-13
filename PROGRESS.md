@@ -3,8 +3,28 @@
 ## Last session
 
 - Date: 2026-11-13
-- Story: S4.3 - risk team (`passes=true`; on branch `s4.3-risk-team`, not yet merged, CI not yet seen; mypy cannot
-  run locally, so CI is the type check).
+- Story: S4.4 - portfolio manager (`passes=true`; on branch `s4.4-portfolio-manager`, not yet merged, CI not yet
+  seen; mypy cannot run locally, so CI is the type check).
+  New `ta_in.agents.portfolio_manager.run_portfolio_manager(client, state, *, model, trace=None)`: weighs the
+  snapshot, reports, research plan, trader proposal and risk debate and sets `state.decision` to a validated
+  `PortfolioDecision` (five-tier rating) through `complete_structured`. `model` has no default (callers pass
+  `Settings.deep_model`); agent name `portfolio_manager`; a missing proposal is a `ValueError` before any call.
+  **Cites the risk discussion, enforced in code (decided with you: one quote from EACH risk analyst):** the
+  `investment_thesis` must contain a double-quoted, word-for-word passage of at least 20 characters from the
+  aggressive, the neutral and the conservative analyst; a miss gets the one structured retry (the message names only the
+  missing analysts), then `StructuredOutputError` with the raw decision in the trace. Only the thesis is checked, not
+  the executive summary. **With no risk debate (`risk_rounds=0`) the manager judges the proposal directly:** the prompt
+  says "No risk debate took place; judge the proposal directly", it uses its own system prompt without the quoting rule
+  and no check (decided with you, as S3.3 did for the research manager). A risk debate missing one of the three analysts
+  raises `ValueError` before any call. **Shared quote check:** new `ta_in.agents.quotes` (`quoted_sides(text, groups)`,
+  `MIN_QUOTE_CHARS`); `research_manager.find_quotes` is now a thin wrapper with the same signature and results (its tests
+  did not change). `risk_team._proposal_block` is now public as `proposal_block`. `price_target` is not checked against
+  the snapshot (claim checker, S5.3) and lessons from earlier runs are not wired (S6.4). Tests:
+  `tests/agents/test_portfolio_manager.py` (all 20 frozen cells, per-analyst quote matching, retry, failure trace,
+  summary-only quotes rejected, deep model, prompt, injection tags, no risk debate, half debates) and
+  `tests/agents/test_quotes.py`. No real model was called, so whether a real model reliably copies three verbatim quotes
+  is untested.
+- Previous story: S4.3 - risk team (merged, PR #42; `passes=true`). Details:
   New `ta_in.agents.risk_team.run_risk_debate(client, state, *, model, rounds)`: per round the aggressive, neutral and
   conservative analysts speak in that order, one model call per turn (`max_steps=1`, no tools), each appended with
   `state.add_turn`, so everything lands in `state.risk_debate`. **Each turn answers the other two:** the prompt shows the
@@ -380,11 +400,12 @@
 - S3.2: research manager on the deep tier, plan must quote both sides verbatim (merged, PR #39)
 - S3.3: debate rounds 0 to 3, `run_research_team`, exact replay (merged, PR #40)
 - S4.1: trader returns a `TraderProposal` with a consistent rating and evidence that resolves in the state (merged, PR #41)
-- S4.3: risk team, three analysts each answering the other two, rounds 0 to 3 (on a branch, awaiting CI and merge)
+- S4.3: risk team, three analysts each answering the other two, rounds 0 to 3 (merged, PR #42)
+- S4.4: portfolio manager on the deep tier, thesis must quote all three risk analysts (on a branch, awaiting CI and merge)
 
 ## Next
 
-- After S4.3: S4.4 (portfolio manager on the deep tier returns the five-tier `PortfolioDecision`; its rationale must cite the risk discussion, which needs a way to check that, as S3.2 did with verbatim quotes; with `risk_rounds=0` there is no risk discussion, so decide that case as S3.3 did for the research manager), then S4.5 (`propagate`: `run_research_team`, `run_trader`, `run_risk_debate`, then the portfolio manager; it should also wire the real company-name resolver into the news provider, see Open issues). S2.8 stays blocked behind the deferred S0.7.
+- After S4.4: S4.5 (`propagate(ticker, date)`: identity first so a bad ticker stops the run, the three analysts through `run_analysts`, `run_research_team` (`Settings.debate_rounds`, quick and deep models), `run_trader` (quick), `run_risk_debate` (`Settings.risk_rounds`, quick), `run_portfolio_manager` (deep); one fixture cell must run end to end in replay mode inside CI, and total cost and time must be reported; it should also wire the real company-name resolver into the news provider, see Open issues). Then S5.1 (CLI), S5.2, S5.3 (claim checker, which also owns number grounding for the trader, the risk team and the portfolio manager) and Epics 6 and 7. S2.8 stays blocked behind the deferred S0.7.
 - Post-MVP: macro news (market-wide query, fixtures, analyst section); decided during S2.4 planning.
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to
