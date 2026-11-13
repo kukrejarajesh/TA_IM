@@ -488,7 +488,7 @@
       "depends_on": [
         "S2.6"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "S4.2",
