@@ -108,6 +108,7 @@ class LLMClient:
         max_tokens: int = 16000,
         tools: list[dict[str, Any]] | None = None,
         agent: str = "default",
+        tool_choice: dict[str, Any] | None = None,
     ) -> LLMTurn:
         """One call, returning the assistant's text and tool_use blocks and why it stopped.
 
@@ -120,7 +121,7 @@ class LLMClient:
         error: str | None = None
         started = self._clock()
         try:
-            return self._complete(model, system, messages, max_tokens, tools, outcome)
+            return self._complete(model, system, messages, max_tokens, tools, tool_choice, outcome)
         except Exception as err:
             error = type(err).__name__
             raise
@@ -151,9 +152,10 @@ class LLMClient:
         messages: list[dict[str, Any]],
         max_tokens: int,
         tools: list[dict[str, Any]] | None,
+        tool_choice: dict[str, Any] | None,
         outcome: _Outcome,
     ) -> LLMTurn:
-        key = cache_key(model, system, messages, tools, max_tokens)
+        key = cache_key(model, system, messages, tools, max_tokens, tool_choice)
         if self._cache_mode is CacheMode.REPLAY:
             return self._replay(key, model, outcome)
         if self.spent_usd >= self._budget_usd:
@@ -171,6 +173,8 @@ class LLMClient:
         }
         if tools is not None:
             request["tools"] = tools
+        if tool_choice is not None:
+            request["tool_choice"] = tool_choice
         response, attempts = self._call_with_retry(**request)
         turn = LLMTurn.from_sdk(response)
         outcome.turn = turn

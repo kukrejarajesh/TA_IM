@@ -3,7 +3,25 @@
 ## Last session
 
 - Date: 2026-11-13
-- Story: S3.1 - bull and bear researchers (merged, PR #36, CI green including mypy; `passes=true`). It was
+- Story: S4.2 - structured output through tool use (`passes=true`; on branch `s4.2-structured-output`, not yet
+  merged, CI not yet seen; mypy cannot run locally, so CI is the type check).
+  New `ta_in.llm.structured.complete_structured(client, *, model, system, messages, output_model, agent, trace=None,
+  tool_name="submit_result", max_tokens=16000)` returns a validated instance of any Pydantic model (`ResearchPlan`,
+  `TraderProposal`, `PortfolioDecision` all tested). It sends one tool built from `output_model.model_json_schema()`
+  with the tool FORCED (`tool_choice`). An answer is malformed when it is cut off (`max_tokens`), has no tool call,
+  calls another tool or several tools, or fails validation. A malformed answer is retried **exactly once**: the model
+  is shown its own answer and a reply (a `tool_result` with `is_error` for every `tool_use`, or a plain user message when
+  it made no tool call) that names what was wrong (validation text capped at 2000 characters). A second failure raises
+  `StructuredOutputError` (`.attempts`: raw output, stop reason, error) after writing one `structured_failure` event
+  to the trace with the raw output of both attempts. At most 2 model calls; `BudgetExceeded`, `PointInTimeError` and
+  any other client error are not retried. Both calls are costed, traced and recorded, so a retried run replays with no
+  SDK calls. **Client change:** `complete_turn(..., tool_choice=None)` sends `tool_choice` to the API, and
+  `cache_key(..., tool_choice=None)` includes it only when set, so every old key and recording stays valid (two
+  pinned hashes in `test_cache.py`). `test_key_inputs_are_only_the_request_not_credentials` now lists `tool_choice`
+  as a fifth request component. New `TraceWriter.log_event(type, **fields)` (rejects `call` / `run_start`);
+  `trace-summary` ignores such events. Not used by any agent yet: S3.2 (research manager) and S4.1 (trader) call it.
+  Tests: `tests/llm/test_structured_output.py`. No real model was called, so a real forced-tool call is still unseen.
+- Previous story: S3.1 - bull and bear researchers (merged, PR #36, CI green including mypy; `passes=true`). It was
   committed with `--no-verify` because Smart App Control blocks mypy locally; CI was the type check.
   New `ta_in.agents.researchers.run_investment_debate(client, state, *, model, rounds)`: each round the bull speaks,
   then the bear, one model call per turn, no tools (`max_steps=1`), each turn added with `state.add_turn`. The prompt
@@ -285,10 +303,11 @@
 - S2.4: news analyst with citations, wired to the insufficient-data rule (merged, PR #32)
 - S2.5: fundamentals analyst, withheld stated without claims, Rs crore grounding (merged, PR #34)
 - S3.1: bull and bear researchers, debate rounds capped at 3 (merged, PR #36)
+- S4.2: structured output through a forced tool, one retry, loud failure with raw output in the trace (on a branch, awaiting CI and merge)
 
 ## Next
 
-- After S3.1: S4.2 (structured output through tool use) comes before S3.2 (research manager). S2.8 stays blocked behind the deferred S0.7.
+- After S4.2: S3.2 (research manager on the deep tier, uses `complete_structured` and `ResearchPlan`), then S3.3 (rounds 0 to 3, which only lowers the `debate_rounds` and `run_investment_debate` minimum to 0, and replay) and S4.1 (trader). S2.8 stays blocked behind the deferred S0.7.
 - Post-MVP: macro news (market-wide query, fixtures, analyst section); decided during S2.4 planning.
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to

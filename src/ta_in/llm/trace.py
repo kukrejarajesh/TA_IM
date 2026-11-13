@@ -39,6 +39,15 @@ class TraceWriter:
         with self._lock, self.path.open("ab") as f:  # bytes: no CRLF translation on Windows
             f.write(line.encode("utf-8"))
 
+    def log_event(self, event_type: str, **fields: Any) -> None:
+        """Write a non-call event (for example a `structured_failure` with the raw output).
+
+        `trace-summary` only counts `call` events, so these never change cost or time totals.
+        """
+        if event_type in {"call", "run_start"}:
+            raise ValueError(f"{event_type!r} is reserved for the trace itself")
+        self._write({**fields, "type": event_type, "ts": _now()})
+
     def log_call(
         self,
         *,
