@@ -79,6 +79,31 @@ def test_trader_proposal_optional_fields_default_to_none() -> None:
         TraderProposal(action="Overweight", reasoning="x")  # type: ignore[arg-type]
 
 
+def test_trader_proposal_rating_and_evidence_default_to_empty() -> None:
+    p = TraderProposal(action=TraderAction.BUY, reasoning="why")
+    assert p.rating is None
+    assert p.evidence == []
+
+
+@pytest.mark.parametrize("rating", list(PortfolioRating))
+def test_trader_proposal_accepts_every_five_tier_rating_and_round_trips(
+    rating: PortfolioRating,
+) -> None:
+    p = TraderProposal(
+        action=TraderAction.HOLD,
+        reasoning="why",
+        rating=rating,
+        evidence=["plan.recommendation", "price_snapshot.last_close"],
+    )
+    assert TraderProposal.model_validate_json(p.model_dump_json()) == p
+    assert p.evidence == ["plan.recommendation", "price_snapshot.last_close"]
+
+
+def test_trader_proposal_rejects_an_unknown_rating() -> None:
+    with pytest.raises(ValidationError):
+        TraderProposal(action=TraderAction.BUY, reasoning="x", rating="Strong Buy")  # type: ignore[arg-type]
+
+
 def test_portfolio_decision_optional_fields_default_to_none() -> None:
     d = PortfolioDecision(rating="Sell", executive_summary="s", investment_thesis="t")
     assert d.rating is PortfolioRating.SELL

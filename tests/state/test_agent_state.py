@@ -46,7 +46,13 @@ def _plan() -> ResearchPlan:
 
 
 def _proposal() -> TraderProposal:
-    return TraderProposal(action=TraderAction.BUY, reasoning="plan says buy", entry_price=1450.5)
+    return TraderProposal(
+        action=TraderAction.BUY,
+        reasoning="plan says buy",
+        entry_price=1450.5,
+        rating=PortfolioRating.OVERWEIGHT,
+        evidence=["plan.recommendation", "price_snapshot.last_close"],
+    )
 
 
 def _decision() -> PortfolioDecision:

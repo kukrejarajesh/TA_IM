@@ -18,6 +18,7 @@ from ta_in.agents.research_manager import find_quotes, run_research_manager
 from ta_in.agents.research_team import run_research_team
 from ta_in.agents.researchers import MAX_DEBATE_ROUNDS, DebateError, run_investment_debate
 from ta_in.agents.tools import Tool, build_registry
+from ta_in.agents.trader import run_trader
 
 __all__ = [
     "ANALYST_NAMES",
@@ -47,6 +48,7 @@ __all__ = [
     "run_market_analyst",
     "run_research_manager",
     "run_research_team",
+    "run_trader",
     "unverified_crore_figures",
     "unverified_price_figures",
 ]
