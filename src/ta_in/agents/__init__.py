@@ -15,6 +15,7 @@ from ta_in.agents.market_analyst import run_market_analyst, unverified_price_fig
 from ta_in.agents.market_tools import MAX_INDICATORS
 from ta_in.agents.news_analyst import run_news_analyst
 from ta_in.agents.research_manager import find_quotes, run_research_manager
+from ta_in.agents.research_team import run_research_team
 from ta_in.agents.researchers import MAX_DEBATE_ROUNDS, DebateError, run_investment_debate
 from ta_in.agents.tools import Tool, build_registry
 
@@ -45,6 +46,7 @@ __all__ = [
     "run_news_analyst",
     "run_market_analyst",
     "run_research_manager",
+    "run_research_team",
     "unverified_crore_figures",
     "unverified_price_figures",
 ]
