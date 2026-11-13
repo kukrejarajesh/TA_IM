@@ -3,8 +3,8 @@
 ## Last session
 
 - Date: 2026-11-13
-- Story: S2.6 - run selected analysts in parallel (branch `s2.6-parallel-analysts`; offline tests done, `passes` stays
-  false until CI is green). New `ta_in.agents.analysts`: `AnalystSpec(name, run)` where `run(state) -> state` sets that
+- Story: S2.6 - run selected analysts in parallel (merged, PR #28, CI green; `passes=true`).
+  New `ta_in.agents.analysts`: `AnalystSpec(name, run)` where `run(state) -> state` sets that
   analyst's report; `market_spec(client, provider, *, model)` and `default_specs(...)` (only "market" exists so far, S2.4 /
   S2.5 add one entry each); `parse_analysts("market,news", available)` is what the future `--analysts` flag (S5.1) calls
   (tolerates spaces, case, repeats; empty / unknown / not-yet-built names raise `ValueError` saying what is valid);
@@ -210,7 +210,7 @@
 - S2.1: typed `AgentState` with per-agent field ownership (merged, PR #21)
 - S2.2: generic agent loop with tool calling (merged, PR #23, passes flipped in #24)
 - S2.3: market analyst with grounded report (merged, PR #25)
-- S2.6: parallel analyst runner, thread-safe LLM client and trace (offline tests done; `passes` pending CI)
+- S2.6: parallel analyst runner, thread-safe LLM client and trace (merged, PR #28)
 
 ## Next
 
