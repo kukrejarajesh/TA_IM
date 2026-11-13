@@ -3,8 +3,8 @@
 ## Last session
 
 - Date: 2026-11-13
-- Story: S2.7 - insufficient-data rule (branch `s2.7-insufficient-data`; offline tests done, `passes` stays false until
-  CI is green). New setting `Settings.min_news_items` (default 3, env `TA_MIN_NEWS_ITEMS`, 0 and negatives rejected;
+- Story: S2.7 - insufficient-data rule (merged, PR #30, CI green; `passes=true`).
+  New setting `Settings.min_news_items` (default 3, env `TA_MIN_NEWS_ITEMS`, 0 and negatives rejected;
   `.env.example` lists the name). New `ta_in.agents.evidence`: `is_thin(found, minimum)` (exactly the minimum is
   enough), `insufficient_data_report(analyst, found, minimum, what="news items")` and
   `run_gated(analyst, items, minimum, analyse, what=...)`. When `items` are fewer than the minimum, `run_gated` returns a
@@ -224,7 +224,7 @@
 - S2.2: generic agent loop with tool calling (merged, PR #23, passes flipped in #24)
 - S2.3: market analyst with grounded report (merged, PR #25)
 - S2.6: parallel analyst runner, thread-safe LLM client and trace (merged, PR #28)
-- S2.7: insufficient-data rule and `TA_MIN_NEWS_ITEMS` setting (offline tests done; `passes` pending CI; wired into the news analyst in S2.4)
+- S2.7: insufficient-data rule and `TA_MIN_NEWS_ITEMS` setting (merged, PR #30; wired into the news analyst in S2.4)
 
 ## Next
 
