@@ -3,7 +3,20 @@
 ## Last session
 
 - Date: 2026-11-13
-- Story: S2.6 - run selected analysts in parallel (merged, PR #28, CI green; `passes=true`).
+- Story: S2.7 - insufficient-data rule (branch `s2.7-insufficient-data`; offline tests done, `passes` stays false until
+  CI is green). New setting `Settings.min_news_items` (default 3, env `TA_MIN_NEWS_ITEMS`, 0 and negatives rejected;
+  `.env.example` lists the name). New `ta_in.agents.evidence`: `is_thin(found, minimum)` (exactly the minimum is
+  enough), `insufficient_data_report(analyst, found, minimum, what="news items")` and
+  `run_gated(analyst, items, minimum, analyse, what=...)`. When `items` are fewer than the minimum, `run_gated` returns a
+  report with `insufficient_data=True` and status `ok` (nothing failed; the evidence was thin, so it is not a gap) and
+  never calls `analyse`, so no model call is made. Text example: "Insufficient data: found 1 news item, the minimum
+  is 3. No analysis was made." Tests: `tests/agents/test_insufficient_data.py` (0, 1, 2 flagged; 3 and more analysed;
+  the analysis is never called when thin; the configured minimum changes the outcome; the flag survives `run_analysts`
+  and the `AgentState` JSON round trip) and setting tests in `tests/config/test_settings.py`. **Not wired yet: there is
+  no news analyst until S2.4. S2.4 must call `run_gated` with the point-in-time-filtered, de-duplicated items from
+  `NewsService` and `Settings.min_news_items`, and add its own test through the real analyst on the frozen fixture
+  cells.** Fundamentals can reuse it (`what="annual statements"`) when S2.5 decides its own minimum. No model was called.
+- Previous story: S2.6 - run selected analysts in parallel (merged, PR #28, CI green; `passes=true`).
   New `ta_in.agents.analysts`: `AnalystSpec(name, run)` where `run(state) -> state` sets that
   analyst's report; `market_spec(client, provider, *, model)` and `default_specs(...)` (only "market" exists so far, S2.4 /
   S2.5 add one entry each); `parse_analysts("market,news", available)` is what the future `--analysts` flag (S5.1) calls
@@ -211,10 +224,11 @@
 - S2.2: generic agent loop with tool calling (merged, PR #23, passes flipped in #24)
 - S2.3: market analyst with grounded report (merged, PR #25)
 - S2.6: parallel analyst runner, thread-safe LLM client and trace (merged, PR #28)
+- S2.7: insufficient-data rule and `TA_MIN_NEWS_ITEMS` setting (offline tests done; `passes` pending CI; wired into the news analyst in S2.4)
 
 ## Next
 
-- After S2.6: S2.7 / S2.4 / S2.5 and on through Epic 2. S0.7 / S7.3 are deferred (see Last session). S0.7 would need the upstream v0.7.0 code cloned into
+- After S2.7: S2.4 (must call `run_gated`) / S2.5 and on through Epic 2. S0.7 / S7.3 are deferred (see Last session). S0.7 would need the upstream v0.7.0 code cloned into
   its own environment, an Anthropic key, a budget and a data-source decision (own vendors vs our frozen snapshots).
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to
