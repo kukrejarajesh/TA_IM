@@ -67,7 +67,7 @@ Rules:
 - Be concise (under 300 words) and finish with the position you recommend on sizing and risk."""
 
 
-def _proposal_block(proposal: TraderProposal) -> str:
+def proposal_block(proposal: TraderProposal) -> str:
     rating = proposal.rating.value if proposal.rating is not None else "not given"
     lines = [
         f"Action: {proposal.action.value}",
@@ -118,7 +118,7 @@ def _prompt(state: AgentState, proposal: TraderProposal, round_no: int, me: Agen
             "</research_plan>",
             "",
         ]
-    lines += ["<trader_proposal>", _proposal_block(proposal), "</trader_proposal>", ""]
+    lines += ["<trader_proposal>", proposal_block(proposal), "</trader_proposal>", ""]
     lines += ["Risk debate so far:", debate_history(state.risk_debate), ""]
 
     latest = _latest_by_stance(state.risk_debate)

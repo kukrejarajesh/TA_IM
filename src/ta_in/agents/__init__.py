@@ -14,6 +14,8 @@ from ta_in.agents.loop import AgentResult, ToolCallRecord, TurnClient, run_agent
 from ta_in.agents.market_analyst import run_market_analyst, unverified_price_figures
 from ta_in.agents.market_tools import MAX_INDICATORS
 from ta_in.agents.news_analyst import run_news_analyst
+from ta_in.agents.portfolio_manager import run_portfolio_manager
+from ta_in.agents.quotes import MIN_QUOTE_CHARS, quoted_sides
 from ta_in.agents.research_manager import find_quotes, run_research_manager
 from ta_in.agents.research_team import run_research_team
 from ta_in.agents.researchers import MAX_DEBATE_ROUNDS, DebateError, run_investment_debate
@@ -26,6 +28,7 @@ __all__ = [
     "MAX_DEBATE_ROUNDS",
     "MAX_INDICATORS",
     "MAX_RISK_ROUNDS",
+    "MIN_QUOTE_CHARS",
     "AgentResult",
     "AnalystSpec",
     "DebateError",
@@ -45,7 +48,9 @@ __all__ = [
     "run_analysts",
     "run_fundamentals_analyst",
     "run_gated",
+    "quoted_sides",
     "run_investment_debate",
+    "run_portfolio_manager",
     "run_news_analyst",
     "run_market_analyst",
     "run_research_manager",

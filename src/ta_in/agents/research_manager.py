@@ -16,9 +16,9 @@ calls them data, never instructions.
 
 from __future__ import annotations
 
-import re
 from collections.abc import Sequence
 
+from ta_in.agents.quotes import MIN_QUOTE_CHARS, quoted_sides
 from ta_in.agents.researchers import debate_history, report_block
 from ta_in.data.snapshot import render_snapshot
 from ta_in.llm.structured import StructuredClient, complete_structured
@@ -26,9 +26,6 @@ from ta_in.llm.trace import TraceWriter
 from ta_in.schemas import ResearchPlan
 from ta_in.state.agent_state import AgentState
 from ta_in.state.models import AgentName
-
-MIN_QUOTE_CHARS = 20
-_QUOTED = re.compile(r'["“]([^"“”]+)["”]')
 
 SYSTEM_PROMPT = """You are the research manager on an equity research team covering NSE stocks.
 A bull researcher and a bear researcher have debated one stock. Judge the debate and write the
@@ -66,23 +63,13 @@ Rules:
 Answer only by calling the tool."""
 
 
-def _normal(text: str) -> str:
-    return " ".join(text.split()).casefold()
-
-
 def find_quotes(
     rationale: str, bull_texts: Sequence[str], bear_texts: Sequence[str]
 ) -> tuple[bool, bool]:
     """(quotes the bull, quotes the bear): does the rationale hold a double-quoted passage of at
     least `MIN_QUOTE_CHARS` that appears word for word inside a turn of that side?"""
-    bull = [_normal(t) for t in bull_texts]
-    bear = [_normal(t) for t in bear_texts]
-    quotes = [_normal(q) for q in _QUOTED.findall(rationale)]
-    quotes = [q for q in quotes if len(q) >= MIN_QUOTE_CHARS]
-    return (
-        any(q in turn for q in quotes for turn in bull),
-        any(q in turn for q in quotes for turn in bear),
-    )
+    found = quoted_sides(rationale, {"bull": bull_texts, "bear": bear_texts})
+    return found["bull"], found["bear"]
 
 
 def _prompt(state: AgentState) -> str:
