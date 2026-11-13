@@ -2,12 +2,14 @@ from ta_in.agents.analysts import (
     ANALYST_NAMES,
     AnalystSpec,
     default_specs,
+    fundamentals_spec,
     market_spec,
     news_spec,
     parse_analysts,
     run_analysts,
 )
 from ta_in.agents.evidence import insufficient_data_report, is_thin, run_gated
+from ta_in.agents.fundamentals_analyst import run_fundamentals_analyst, unverified_crore_figures
 from ta_in.agents.loop import AgentResult, ToolCallRecord, TurnClient, run_agent
 from ta_in.agents.market_analyst import run_market_analyst, unverified_price_figures
 from ta_in.agents.market_tools import MAX_INDICATORS
@@ -24,6 +26,7 @@ __all__ = [
     "TurnClient",
     "build_registry",
     "default_specs",
+    "fundamentals_spec",
     "insufficient_data_report",
     "is_thin",
     "market_spec",
@@ -31,8 +34,10 @@ __all__ = [
     "parse_analysts",
     "run_agent",
     "run_analysts",
+    "run_fundamentals_analyst",
     "run_gated",
     "run_news_analyst",
     "run_market_analyst",
+    "unverified_crore_figures",
     "unverified_price_figures",
 ]

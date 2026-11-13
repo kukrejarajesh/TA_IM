@@ -17,6 +17,7 @@ from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import Any
 
+from ta_in.agents.fundamentals_analyst import run_fundamentals_analyst
 from ta_in.agents.loop import TurnClient
 from ta_in.agents.market_analyst import run_market_analyst
 from ta_in.agents.news_analyst import run_news_analyst
@@ -66,16 +67,21 @@ def news_spec(
     )
 
 
+def fundamentals_spec(client: TurnClient, provider: DataProvider, *, model: str) -> AnalystSpec:
+    return AnalystSpec(
+        name="fundamentals",
+        run=lambda state: run_fundamentals_analyst(client, state, provider, model=model),
+    )
+
+
 def default_specs(
     client: TurnClient, provider: DataProvider, *, model: str, min_news_items: int
 ) -> dict[str, AnalystSpec]:
-    """The analysts that exist so far. Fundamentals (S2.5) adds its own.
-
-    Pass `Settings.min_news_items` as `min_news_items`.
-    """
+    """All three analysts. Pass `Settings.min_news_items` as `min_news_items`."""
     return {
         "market": market_spec(client, provider, model=model),
         "news": news_spec(client, provider, model=model, min_news_items=min_news_items),
+        "fundamentals": fundamentals_spec(client, provider, model=model),
     }
 
 
