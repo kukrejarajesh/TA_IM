@@ -3,8 +3,29 @@
 ## Last session
 
 - Date: 2026-11-13
-- Story: S3.3 - debate rounds 0 to 3 with exact replay (`passes=true`; on branch `s3.3-debate-rounds`, not yet
-  merged, CI not yet seen; mypy cannot run locally, so CI is the type check).
+- Story: S4.1 - trader (`passes=true`; on branch `s4.1-trader`, not yet merged, CI not yet seen; mypy cannot run
+  locally, so CI is the type check).
+  New `ta_in.agents.trader.run_trader(client, state, *, model, trace=None)`: reads `state.plan`, the snapshot and the
+  three reports and sets `state.proposal` to a validated `TraderProposal` through `complete_structured`. `model` has no
+  default (callers pass `Settings.quick_model`, as upstream's trader is quick tier); agent name `trader`; no plan is a
+  `ValueError` before any call. **Schema, decided with you: `TraderProposal` was extended in place** with `rating:
+  PortfolioRating | None = None` and `evidence: list[str] = []` (defaults keep upstream-shaped proposals valid; the
+  "Changes from upstream" note in `schemas/decision.py` lists it). **The trader requires both, checked in code (one
+  retry, then `StructuredOutputError` with the raw output in the trace):** the rating must agree with the action (Buy:
+  Buy or Overweight; Hold: Hold; Sell: Underweight or Sell, decided with you), evidence must be non-empty, and every
+  reference must resolve. New `ta_in.state.refs`: `resolve_ref(state, ref)` walks a path such as `price_snapshot.last_close`,
+  `plan.recommendation`, `market_report` or `investment_debate[1].text` through the real state and raises
+  `EvidenceRefError` for bad syntax, a root outside `TRADER_EVIDENCE_ROOTS` (identity, price_snapshot, the three reports,
+  investment_debate, plan; never proposal, risk_debate or decision), a missing field, an out-of-range index, an unset
+  value, or a report that is a `gap`. `available_refs(state)` lists the citable references (set roots, their set
+  fields, each debate turn; gap reports left out) and is printed in the prompt under "Evidence you may cite". Prices
+  (`entry_price`, `stop_loss`) are NOT checked against the snapshot here; the claim checker (S5.3) owns that. Tests:
+  `tests/agents/test_trader.py` (all 20 frozen cells, with an independent walk of `state.model_dump()` proving each
+  reference points at a real field; the retries, consistent and inconsistent action/rating pairs, forbidden roots, gap
+  reports, failure trace, prompt and injection tags), `tests/state/test_refs.py`, new field tests in
+  `tests/schemas/test_decision.py`, and the populated-state helper in `tests/state/test_agent_state.py` now carries a
+  rating and evidence so the lossless round trip covers them. No real model was called.
+- Previous story: S3.3 - debate rounds 0 to 3 with exact replay (merged, PR #40; `passes=true`).
   `run_investment_debate` now accepts `rounds` 0 to `MAX_DEBATE_ROUNDS` (3); 0 returns the state unchanged with no
   model call. `Settings.debate_rounds` is `ge=0, le=3` (`.env.example` says so). **Decision with you: with 0 rounds the
   research manager still runs and judges the snapshot and analyst reports directly.** With no debate its prompt says
@@ -339,11 +360,12 @@
 - S3.1: bull and bear researchers, debate rounds capped at 3 (merged, PR #36)
 - S4.2: structured output through a forced tool, one retry, loud failure with raw output in the trace (merged, PR #38)
 - S3.2: research manager on the deep tier, plan must quote both sides verbatim (merged, PR #39)
-- S3.3: debate rounds 0 to 3, `run_research_team`, exact replay (on a branch, awaiting CI and merge)
+- S3.3: debate rounds 0 to 3, `run_research_team`, exact replay (merged, PR #40)
+- S4.1: trader returns a `TraderProposal` with a consistent rating and evidence that resolves in the state (on a branch, awaiting CI and merge)
 
 ## Next
 
-- After S3.3: S4.1 (trader: turns the `ResearchPlan` into a `TraderProposal` through `complete_structured`; each evidence reference must point to a real state field), then S4.3 (risk team), S4.4 (portfolio manager) and S4.5 (`propagate`, which should call `run_research_team`). S2.8 stays blocked behind the deferred S0.7.
+- After S4.1: S4.3 (aggressive, neutral and conservative risk analysts debate the proposal, 0 and 1 rounds both work, history in `risk_debate`), then S4.4 (portfolio manager on the deep tier, `PortfolioDecision`, rationale cites the risk discussion; may need its own evidence or quote check) and S4.5 (`propagate`, which should call `run_research_team` then `run_trader`, then the risk team and the portfolio manager). `Settings.risk_rounds` is still `ge=1` with no upper limit, so S4.3 should decide its range as S3.1/S3.3 did for the debate. S2.8 stays blocked behind the deferred S0.7.
 - Post-MVP: macro news (market-wide query, fixtures, analyst section); decided during S2.4 planning.
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to

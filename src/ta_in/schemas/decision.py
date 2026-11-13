@@ -10,6 +10,9 @@ baseline comparison (S0.7) sees the same vocabulary. Changes from upstream:
   - type annotations, because mypy runs in strict mode here
   - "₹" is also stripped from price strings; NSE prices are rupees, and upstream strips only
     "$€£¥", which would turn "₹2,450" into None
+  - TraderProposal gains `rating` (five-tier, optional) and `evidence` (paths into the run state,
+    default empty). Both default to empty so upstream-shaped proposals still validate; the
+    trader agent requires them (S4.1)
 
 Every agent imports these types from ta_in.schemas; none may define its own copy.
 """
@@ -176,6 +179,21 @@ class TraderProposal(BaseModel):
     position_sizing: str | None = Field(
         default=None,
         description="Optional sizing guidance, e.g. '5% of portfolio'.",
+    )
+    rating: PortfolioRating | None = Field(
+        default=None,
+        description=(
+            "The five-tier view behind the action: Buy or Overweight for a Buy action, "
+            "Hold for a Hold action, Underweight or Sell for a Sell action. Required."
+        ),
+    )
+    evidence: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Paths into the run state that support this proposal, taken only from the list "
+            "of citable references you were given, e.g. 'plan.recommendation' or "
+            "'price_snapshot.last_close'. At least one is required."
+        ),
     )
 
     @field_validator("entry_price", "stop_loss", mode="before")
