@@ -3,8 +3,31 @@
 ## Last session
 
 - Date: 2026-11-13
-- Story: S4.5 - propagate (`passes=true`; on branch `s4.5-propagate`, not yet merged, CI not yet seen; mypy cannot
-  run locally, so CI is the type check). **This is the first story that runs the whole pipeline; it was only run
+- Story: S5.1 - command line (`passes=true`; on branch `s5.1-cli`, not yet merged, CI not yet seen; mypy cannot run
+  locally, so CI is the type check). **Never run against the real API or live data; only against the scripted fake
+  SDK and the frozen fixtures.**
+  New `ta_in.cli` with script entry `ta-in` (`pyproject.toml`) and `python -m ta_in.cli`:
+  `ta-in run --ticker T --date D [--analysts a,b] [--rounds N] [--risk-rounds N] [--replay] [--run-id ID] [--fixtures DIR]`.
+  **Decision with you: frozen fixtures only.** A ticker or date that is not frozen is an error that lists every frozen
+  cell; live data providers (and wiring the real company-name resolver into the news provider, see Open issues) are
+  NOT done and are not a listed story, so the CLI cannot run any date outside the 20 frozen cells yet. `--date` is
+  `YYYY-MM-DD` (16:00 IST) or an ISO datetime with an offset. `--rounds` is the bull/bear debate rounds and
+  `--risk-rounds` the risk rounds (both 0 to 3, else Settings). Output on stdout: rating, executive summary,
+  investment thesis, price target and horizon if present, then a run report (run id, calls and cached calls, tokens,
+  cost, time, trace path). Errors go to stderr as one line, never a traceback: exit 2 for bad flags, settings,
+  fixtures or a used run id; exit 1 for a failed run (all analysts failed, structured-output failure, budget,
+  point-in-time, an unrecorded replay with a hint to record it). **`--replay`** uses the response cache only, needs no
+  Anthropic key (a placeholder is set only for replay) and builds no SDK, so it makes no network call; record a run
+  first with `TA_CACHE_MODE=record` and replay it with the same flags and the same `--run-id`. **Found while testing:
+  `TraceWriter` refuses to reuse a run id, but a byte-identical replay needs the recorded id, so a replay writes no
+  trace of its own (the report says so) and a reused id outside replay is refused with a clear message.** Tests:
+  `tests/cli/test_cli.py` (in-process `main` with a scripted SDK: a full run and its report, the trace, analysts and
+  rounds flags, every missing or malformed flag, not-frozen cells, missing key, a failed run, record then replay with
+  `socket.connect` and `anthropic.Anthropic` patched to raise and no API key, an unrecorded replay, the key never
+  printed, and `python -m ta_in.cli run --help` in a subprocess). The scripted pipeline SDK moved from
+  `tests/replay/test_propagate.py` to `tests/support/pipeline_sdk.py`, shared through `pythonpath = ["tests/support"]`
+  in `pyproject.toml`; `test_propagate.py` only changed its imports.
+- Previous story: S4.5 - propagate (merged, PR #44; `passes=true`). **This is the first story that runs the whole pipeline; it was only run
   against a scripted fake SDK, never a real model, so a real end-to-end run, its cost and its time are still unseen.**
   New `ta_in.propagate.propagate(ticker, as_of, *, settings, client, provider, trace=None, run_id=None,
   analysts=("market","news","fundamentals"), clock=time.perf_counter) -> PropagateResult`. Order: `as_of` must be
@@ -426,11 +449,12 @@
 - S4.1: trader returns a `TraderProposal` with a consistent rating and evidence that resolves in the state (merged, PR #41)
 - S4.3: risk team, three analysts each answering the other two, rounds 0 to 3 (merged, PR #42)
 - S4.4: portfolio manager on the deep tier, thesis must quote all three risk analysts (merged, PR #43)
-- S4.5: `propagate` runs the whole pipeline and reports cost and time; tested only with a scripted fake SDK (on a branch, awaiting CI and merge)
+- S4.5: `propagate` runs the whole pipeline and reports cost and time; tested only with a scripted fake SDK (merged, PR #44)
+- S5.1: `ta-in run` command with `--replay`, frozen fixtures only (on a branch, awaiting CI and merge)
 
 ## Next
 
-- After S4.5: S5.1 (CLI: `run --ticker --date --analysts --rounds`, plus `--replay`; it builds the provider (live, with the real company-name resolver wired into the news provider, see Open issues) and the `LLMClient`, calls `propagate`, prints the cost and time report, and for `--replay` must pass the recorded run id), then S5.2 (reports on disk), S5.3 (claim checker, which also owns number grounding for the trader, the risk team and the portfolio manager) and Epics 6 and 7. **Before relying on any of it, do one real record pass with an API key** (the first real call of every agent, the first real cost and time numbers, and whether real models quote verbatim as S3.2 and S4.4 require). S2.8 stays blocked behind the deferred S0.7.
+- After S5.1: S5.2 (save each agent's report as Markdown and the final decision as JSON under `results/<ticker>/<date>/<run id>/`, with an index of runs and their cost), S5.3 (claim checker, which also owns number grounding for the trader, the risk team and the portfolio manager), then Epics 6 (memory) and 7 (grid runner, scoring, ablations). **Before relying on any of it, do one real record pass with an API key** (`TA_CACHE_MODE=record ta-in run ...`: the first real call of every agent, the first real cost and time numbers, and whether real models quote verbatim as S3.2 and S4.4 require). Live data for dates outside the frozen cells is a gap with no listed story. S2.8 stays blocked behind the deferred S0.7.
 - Post-MVP: macro news (market-wide query, fixtures, analyst section); decided during S2.4 planning.
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to
