@@ -282,3 +282,54 @@ def test_the_trace_summary_matches_the_report(
     ]
     assert lines[0]["run_id"] == "run-2"
     assert sum(1 for e in lines if e["type"] == "call") == 11
+
+
+# --- API errors are one clean line, not a traceback (found by the first real run) ------
+
+
+def _status_error(status: int, message: str) -> Exception:
+    import anthropic
+    import httpx
+
+    request = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
+    response = httpx.Response(status, request=request, json={"error": {"message": message}})
+    cls = anthropic.BadRequestError if status == 400 else anthropic.InternalServerError
+    return cls(message, response=response, body=None)
+
+
+class _FailingSDK(PipelineSDK):
+    """Works until the research manager, whose call fails with `error` (as the real one did)."""
+
+    def __init__(self, error: Exception) -> None:
+        super().__init__()
+        self.error = error
+
+    def _create(self, **kw: Any) -> Any:
+        if self.role_of(kw["system"]) == "manager":
+            self.calls.append(kw)
+            raise self.error
+        return super()._create(**kw)
+
+
+def test_a_rejected_request_is_a_clean_one_line_error(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    sdk = _FailingSDK(_status_error(400, "tool_choice: type tool is not supported for this model"))
+    code, out, err = _run(capsys, _args(), sdk)
+    assert code == 1 and out == ""
+    assert "the model API failed" in err and "BadRequestError" in err
+    assert "tool_choice" in err and "Traceback" not in err and FAKE_KEY not in err
+
+
+def test_a_connection_failure_is_a_clean_one_line_error(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    import anthropic
+    import httpx
+
+    request = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
+    sdk = _FailingSDK(anthropic.APIConnectionError(request=request))
+    code, out, err = _run(capsys, _args(), sdk)
+    assert code == 1 and out == ""
+    assert "the model API failed" in err and "APIConnectionError" in err
+    assert "Traceback" not in err

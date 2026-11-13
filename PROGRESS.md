@@ -3,6 +3,29 @@
 ## Last session
 
 - Date: 2026-11-13
+- **Fix: S4.2 fix - no forced `tool_choice` (branch `s4.2-fix-no-forced-tool-choice`; found by the FIRST REAL RUN; not a
+  listed story, `feature_list.json` is unchanged because S4.2's acceptance criteria still hold and `passes` stays true).**
+  **First real runs (2026-11-13, RELIANCE.NS 2026-10-21, real Anthropic API, frozen data):** run `first-real-run` made 5 good
+  calls (market x2, news, bull, bear on haiku, $0.0061 so far) and then failed at the research manager with `400
+  invalid_request_error: tool_choice: type "tool" and "any" are not supported for this model` (claude-sonnet-5-5). Cause: S4.2's
+  `complete_structured` forced the tool with `tool_choice={"type": "tool", ...}`; the research manager, trader and portfolio
+  manager all use it. The offline tests missed it because every scripted fake accepted any `tool_choice`. The CLI also showed a
+  traceback for the API error. **Fix:** `complete_structured` no longer sends `tool_choice` (the prompts say "answer only by
+  calling the tool"; a text-only answer, a wrong tool, several calls or a cut-off already use the one retry), the CLI prints
+  `anthropic.APIError` as one line (`ta-in: error: the model API failed: <Type>: <message>`, exit 1), and the scripted SDKs in
+  `tests/llm/helpers.py`, `tests/support/pipeline_sdk.py` (new `tests/support/strict_api.py`) and `test_debate_rounds.py` now
+  raise if a request carries a `tool_choice` of type `tool` or `any`, so this cannot hide again. `LLMClient.complete_turn`
+  still accepts `tool_choice` (cache keys unchanged). **Real rerun `real-run-2` (recorded with `TA_CACHE_MODE=record`):
+  completed, exit 0, 11 calls, in 54,820 / out 15,931 tokens, $0.0660, 82 s, final rating Hold; replaying it with the same
+  run id served 11 of 11 calls from the cache at $0.** Real findings from that run, NOT fixed (decisions needed): (1) the
+  market analyst ended as a `gap` ("unverified figures in the report: Rs 1230"): a real model named a price level that is
+  not in the snapshot or any tool output, and the grounding check (D6) rejected it, so the downstream agents said "market
+  report unavailable"; options are to leave the strict check, let the model be shown more levels (more tools or a
+  support/resistance helper), or accept derived levels explicitly; I did not loosen it. (2) Printing en-dashes and other
+  non-cp1252 text to a Windows console or pipe shows "?" because the CLI does not force UTF-8 output. (3) Real models DID quote
+  verbatim: the research manager and portfolio manager passed the quote checks on the first or retried call (trace shows
+  11 calls, so no retries were needed). Still unverified on a real model: fundamentals on a current-date cell, `--rounds`
+  other than 1, and the retry paths.
 - Story: S5.1 - command line (`passes=true`; on branch `s5.1-cli`, not yet merged, CI not yet seen; mypy cannot run
   locally, so CI is the type check). **Never run against the real API or live data; only against the scripted fake
   SDK and the frozen fixtures.**
@@ -148,7 +171,7 @@
   New `ta_in.llm.structured.complete_structured(client, *, model, system, messages, output_model, agent, trace=None,
   tool_name="submit_result", max_tokens=16000)` returns a validated instance of any Pydantic model (`ResearchPlan`,
   `TraderProposal`, `PortfolioDecision` all tested). It sends one tool built from `output_model.model_json_schema()`
-  with the tool FORCED (`tool_choice`). An answer is malformed when it is cut off (`max_tokens`), has no tool call,
+  with the tool FORCED (`tool_choice`; **removed by the 2026-11-13 fix above, current models reject it**). An answer is malformed when it is cut off (`max_tokens`), has no tool call,
   calls another tool or several tools, or fails validation. A malformed answer is retried **exactly once**: the model
   is shown its own answer and a reply (a `tool_result` with `is_error` for every `tool_use`, or a plain user message when
   it made no tool call) that names what was wrong (validation text capped at 2000 characters). A second failure raises
@@ -160,7 +183,7 @@
   pinned hashes in `test_cache.py`). `test_key_inputs_are_only_the_request_not_credentials` now lists `tool_choice`
   as a fifth request component. New `TraceWriter.log_event(type, **fields)` (rejects `call` / `run_start`);
   `trace-summary` ignores such events. Not used by any agent yet: S3.2 (research manager) and S4.1 (trader) call it.
-  Tests: `tests/llm/test_structured_output.py`. No real model was called, so a real forced-tool call is still unseen.
+  Tests: `tests/llm/test_structured_output.py`. The forced-tool call was later run for real and rejected; see the fix at the top.
 - Previous story: S3.1 - bull and bear researchers (merged, PR #36, CI green including mypy; `passes=true`). It was
   committed with `--no-verify` because Smart App Control blocks mypy locally; CI was the type check.
   New `ta_in.agents.researchers.run_investment_debate(client, state, *, model, rounds)`: each round the bull speaks,
@@ -468,6 +491,11 @@
 
 ## Open issues
 
+- **Real-model findings (2026-11-13, see the fix entry in Last session):** the market analyst's strict price-grounding check
+  turned a real model's report into a `gap` ("Rs 1230" not in the snapshot or tool output), which lowered the quality of every
+  later stage in that run; and the CLI does not force UTF-8 stdout, so non-cp1252 characters print as "?" on a Windows
+  console or pipe. Both need a decision; neither is fixed. `.llm_cache/` and `traces/` hold the first real recordings
+  (`real-run-2` replays free); they are git-ignored.
 - The S1.2 yfinance live test (`test_live_yfinance_smoke`) failed on 2026-11-06 with a connect timeout to Yahoo
   from the dev machine and has never passed. Run `uv run pytest -m live tests/data/test_prices.py` where Yahoo
   is reachable.

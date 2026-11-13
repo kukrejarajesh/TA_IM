@@ -11,6 +11,8 @@ import re
 from types import SimpleNamespace
 from typing import Any
 
+from strict_api import reject_forced_tool_choice
+
 QUICK = "claude-haiku-5-5"
 DEEP = "claude-sonnet-5-5"
 _ROUND = re.compile(r"round (\d+) argument")
@@ -89,6 +91,7 @@ class PipelineSDK:
 
     def _create(self, **kw: Any) -> Any:
         self.calls.append(kw)
+        reject_forced_tool_choice(kw)
         role = self.role_of(kw["system"])
         if role in self.failing:
             raise RuntimeError(f"{role} is down")

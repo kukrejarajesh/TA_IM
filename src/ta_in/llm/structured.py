@@ -1,10 +1,12 @@
 """Structured output: make the model fill a tool whose schema is a Pydantic model.
 
-The tool is forced (`tool_choice`), so a well-behaved model answers with exactly one call to it.
-The input is validated with the Pydantic model. A bad answer (text only, another tool, several
-calls, a cut-off, or input that fails validation) is retried ONCE: the model is shown its own answer
-and the error and asked again. A second failure raises `StructuredOutputError` and writes the raw
-output of both attempts to the trace, so a bad run is never papered over.
+The tool is NOT forced: current models reject `tool_choice` of type "tool" or "any" (the first real
+run, 2026-11-13, got a 400 for it). The prompt tells the model to answer only by calling the tool,
+and anything else is caught below. The input is validated with the Pydantic model. A bad answer
+(text only, another tool, several calls, a cut-off, or input that fails validation) is retried
+ONCE: the model is shown its own answer and the error and asked again. A second failure raises
+`StructuredOutputError` and writes the raw output of both attempts to the trace, so a bad run is
+never papered over.
 
 Only malformed answers are retried. `BudgetExceeded`, `PointInTimeError` and every other exception
 from the client propagate untouched. The retry goes through the normal client path, so both calls
@@ -144,7 +146,6 @@ def complete_structured(
         "description": f"Submit your final {output_model.__name__}. Call this exactly once.",
         "input_schema": output_model.model_json_schema(),
     }
-    choice = {"type": "tool", "name": tool_name}
     attempts: list[Attempt] = []
     convo = list(messages)
 
@@ -156,7 +157,6 @@ def complete_structured(
             max_tokens=max_tokens,
             tools=[tool],
             agent=agent,
-            tool_choice=choice,
         )
         parsed, error = _check(turn, output_model, tool_name, check)
         if parsed is not None:

@@ -90,7 +90,7 @@ def test_a_valid_first_answer_returns_the_model_in_one_call(tmp_path: Path) -> N
     call = sdk.calls[0]
     assert [t["name"] for t in call["tools"]] == [TOOL]
     assert call["tools"][0]["input_schema"] == Pick.model_json_schema()
-    assert call["tool_choice"] == {"type": "tool", "name": TOOL}
+    assert "tool_choice" not in call  # current models reject a forced tool choice
     assert call["messages"] == MSGS
 
 
@@ -130,7 +130,7 @@ def test_the_retry_shows_the_model_its_answer_and_the_validation_error(tmp_path:
     assert block["type"] == "tool_result" and block["tool_use_id"] == "tu_b"
     assert block["is_error"] is True
     assert "rating" in block["content"]  # names the field that failed
-    assert sdk.calls[1]["tool_choice"] == {"type": "tool", "name": TOOL}
+    assert "tool_choice" not in sdk.calls[1]
 
 
 def test_a_text_only_retry_names_the_required_tool(tmp_path: Path) -> None:
@@ -298,4 +298,37 @@ def test_two_failed_checks_raise_and_trace_the_raw_output(tmp_path: Path) -> Non
 def test_without_a_check_a_buy_is_fine(tmp_path: Path) -> None:
     client, sdk = make(tmp_path, [good()])
     assert run(client).rating is PortfolioRating.BUY
+    assert len(sdk.calls) == 1
+
+
+# --- no forced tool choice: found by the first real run (2026-11-13) --------------------
+
+
+def test_the_strict_fake_rejects_a_forced_tool_choice_like_the_real_api(tmp_path: Path) -> None:
+    client, _ = make(tmp_path, [good()])
+    forced = {"type": "tool", "name": TOOL}
+    with pytest.raises(AssertionError, match="reject"):
+        client.complete_turn(MODEL, "sys", MSGS, tools=[], tool_choice=forced)
+    for choice in ({"type": "any"}, {"type": "tool", "name": "x"}):
+        with pytest.raises(AssertionError):
+            make(tmp_path, [good()])[0].complete_turn(MODEL, "s", MSGS, tool_choice=choice)
+
+
+def test_a_model_that_answers_in_text_first_gets_the_one_retry_and_then_succeeds(
+    tmp_path: Path,
+) -> None:
+    # Without a forced tool a model may talk instead of calling the tool; the retry covers it.
+    client, sdk = make(tmp_path, [response("I think Buy, because it is strong."), good()])
+    assert run(client) == Pick(rating=PortfolioRating.BUY, reason="strong")
+    assert len(sdk.calls) == 2
+    assert all("tool_choice" not in c for c in sdk.calls)
+    assert TOOL in json.dumps(sdk.calls[1]["messages"][2]["content"])
+
+
+def test_a_model_that_writes_text_and_then_calls_the_tool_is_accepted_at_once(
+    tmp_path: Path,
+) -> None:
+    both = tool_use_response(("tu", TOOL, GOOD), text="Here is my answer.")
+    client, sdk = make(tmp_path, [both])
+    assert run(client) == Pick(rating=PortfolioRating.BUY, reason="strong")
     assert len(sdk.calls) == 1
