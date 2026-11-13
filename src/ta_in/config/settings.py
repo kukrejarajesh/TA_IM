@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     quick_model: str = "claude-haiku-5-5"
     deep_model: str = "claude-sonnet-5-5"
     debate_rounds: int = Field(default=1, ge=0, le=3)  # 0 = no debate; 3 = MAX_DEBATE_ROUNDS
-    risk_rounds: int = Field(default=1, ge=1)
+    risk_rounds: int = Field(default=1, ge=0, le=3)  # 0 = no risk debate; 3 = MAX_RISK_ROUNDS
     temperature: float = Field(default=0.0, ge=0.0, le=1.0)
     budget_usd: float = Field(default=1.0, gt=0.0)
     min_news_items: int = Field(default=3, ge=1)  # fewer news items than this: flag, do not analyse

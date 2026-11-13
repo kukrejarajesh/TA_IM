@@ -67,6 +67,12 @@ def test_all_fields_load_from_env(monkeypatch: pytest.MonkeyPatch) -> None:
     assert s.budget_usd == 12.5
 
 
+def test_zero_risk_rounds_is_valid(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ANTHROPIC_API_KEY", FAKE_KEY)
+    monkeypatch.setenv("TA_RISK_ROUNDS", "0")
+    assert load_settings().risk_rounds == 0
+
+
 def test_zero_debate_rounds_is_valid(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ANTHROPIC_API_KEY", FAKE_KEY)
     monkeypatch.setenv("TA_DEBATE_ROUNDS", "0")
@@ -98,7 +104,8 @@ def test_empty_key_fails(monkeypatch: pytest.MonkeyPatch) -> None:
     [
         ("TA_DEBATE_ROUNDS", "-1", "debate_rounds"),
         ("TA_DEBATE_ROUNDS", "4", "debate_rounds"),  # upper limit is 3 (S3.1)
-        ("TA_RISK_ROUNDS", "0", "risk_rounds"),
+        ("TA_RISK_ROUNDS", "-1", "risk_rounds"),
+        ("TA_RISK_ROUNDS", "4", "risk_rounds"),  # upper limit is 3 (S4.3)
         ("TA_TEMPERATURE", "1.5", "temperature"),
         ("TA_TEMPERATURE", "-0.1", "temperature"),
         ("TA_BUDGET_USD", "0", "budget_usd"),
