@@ -446,7 +446,7 @@
         "S2.2",
         "S1.5"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "S2.8",

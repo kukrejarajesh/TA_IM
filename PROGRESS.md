@@ -3,8 +3,8 @@
 ## Last session
 
 - Date: 2026-11-13
-- Story: S2.5 - fundamentals analyst (branch `s2.5-fundamentals-analyst`; offline tests done, `passes` stays false until
-  CI is green). New `ta_in.agents.fundamentals_analyst.run_fundamentals_analyst(client, state, provider, *, model,
+- Story: S2.5 - fundamentals analyst (merged, PR #34, CI green; `passes=true`).
+  New `ta_in.agents.fundamentals_analyst.run_fundamentals_analyst(client, state, provider, *, model,
   years=5)`; statements go into the prompt (no tool calls). **`Withheld` (all 15 past-dated fixture cells, or an outage):
   the report says "Fundamentals withheld for <ticker> as of <date>: <reason> No fundamental analysis was made and no
   fundamental claims are made.", is `status="ok"` with `insufficient_data=True`, contains no figure, and the model is never
@@ -268,7 +268,7 @@
 - S2.6: parallel analyst runner, thread-safe LLM client and trace (merged, PR #28)
 - S2.7: insufficient-data rule and `TA_MIN_NEWS_ITEMS` setting (merged, PR #30)
 - S2.4: news analyst with citations, wired to the insufficient-data rule (merged, PR #32)
-- S2.5: fundamentals analyst, withheld stated without claims, Rs crore grounding (offline tests done; `passes` pending CI)
+- S2.5: fundamentals analyst, withheld stated without claims, Rs crore grounding (merged, PR #34)
 
 ## Next
 
@@ -307,7 +307,7 @@
   income); values look converted from rupees crore to rupees, and a growth figure came out as `Sales growth:
   100000000.0`, so non-currency items (ratios, growth) look scaled too and must not be trusted or quoted without
   checking. Yearly statements only (quarterly raises in bfinance). Past-dated fundamentals are withheld by design,
-  so past fixture cells have no fundamentals; the fundamentals analyst (S2.5) must say so.
+  so past fixture cells have no fundamentals; the fundamentals analyst (S2.5, merged) says so and makes no claims.
 - **Currents allows at most 7 days per request** (`date_range: Max range is 7 days`, found by hand on 2026-11-11);
   `CurrentsNewsProvider` rejects `lookback_days` over 7. Longer history would need several requests, which the
   30-day lookback limit above also caps.
