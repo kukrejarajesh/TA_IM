@@ -3,8 +3,26 @@
 ## Last session
 
 - Date: 2026-11-13
-- Story: S4.1 - trader (`passes=true`; on branch `s4.1-trader`, not yet merged, CI not yet seen; mypy cannot run
-  locally, so CI is the type check).
+- Story: S4.3 - risk team (`passes=true`; on branch `s4.3-risk-team`, not yet merged, CI not yet seen; mypy cannot
+  run locally, so CI is the type check).
+  New `ta_in.agents.risk_team.run_risk_debate(client, state, *, model, rounds)`: per round the aggressive, neutral and
+  conservative analysts speak in that order, one model call per turn (`max_steps=1`, no tools), each appended with
+  `state.add_turn`, so everything lands in `state.risk_debate`. **Each turn answers the other two:** the prompt shows the
+  latest argument of each of the other two analysts in its own tags (`<aggressive_last_argument>`, `<neutral_...>`,
+  `<conservative_...>`), never the analyst's own, with an instruction to answer both point by point; an analyst who has
+  not spoken yet is named as such, and the aggressive analyst's first turn says no one has spoken. The full risk debate
+  so far, the snapshot, the three reports, the research plan (if set) and the trader's proposal (action, rating,
+  reasoning, entry, stop, sizing, evidence, inside `<trader_proposal>`) are included; each stance has its own system
+  prompt, and all say tagged text is data, never instructions. `model` has no default (callers pass `Settings.quick_model`,
+  as upstream's risk analysts are quick tier). **`MAX_RISK_ROUNDS = 3`; `rounds` 0 to 3, 0 returns the state unchanged with
+  no call (so S4.4's manager must judge the proposal directly when there was no risk debate); `Settings.risk_rounds` is now
+  `ge=0, le=3` and `.env.example` says so.** A missing proposal raises `ValueError`, an empty or cut-off answer raises
+  `DebateError` (reused from the researchers). Arguments are not checked for invented numbers (the claim checker, S5.3,
+  owns that). Tests: `tests/agents/test_risk_team.py` over all 20 frozen cells plus the exact "latest of both others"
+  check for every turn over 2 rounds, history and round trip, 0 to 3 rounds, agent names, model, injection tags and the
+  failures. Existing `test_settings.py` changed because 0 became valid: `TA_RISK_ROUNDS=0` left the invalid list (now `-1`
+  and `4`), and a new test says 0 is valid. No real model was called.
+- Previous story: S4.1 - trader (merged, PR #41; `passes=true`). Details:
   New `ta_in.agents.trader.run_trader(client, state, *, model, trace=None)`: reads `state.plan`, the snapshot and the
   three reports and sets `state.proposal` to a validated `TraderProposal` through `complete_structured`. `model` has no
   default (callers pass `Settings.quick_model`, as upstream's trader is quick tier); agent name `trader`; no plan is a
@@ -361,11 +379,12 @@
 - S4.2: structured output through a forced tool, one retry, loud failure with raw output in the trace (merged, PR #38)
 - S3.2: research manager on the deep tier, plan must quote both sides verbatim (merged, PR #39)
 - S3.3: debate rounds 0 to 3, `run_research_team`, exact replay (merged, PR #40)
-- S4.1: trader returns a `TraderProposal` with a consistent rating and evidence that resolves in the state (on a branch, awaiting CI and merge)
+- S4.1: trader returns a `TraderProposal` with a consistent rating and evidence that resolves in the state (merged, PR #41)
+- S4.3: risk team, three analysts each answering the other two, rounds 0 to 3 (on a branch, awaiting CI and merge)
 
 ## Next
 
-- After S4.1: S4.3 (aggressive, neutral and conservative risk analysts debate the proposal, 0 and 1 rounds both work, history in `risk_debate`), then S4.4 (portfolio manager on the deep tier, `PortfolioDecision`, rationale cites the risk discussion; may need its own evidence or quote check) and S4.5 (`propagate`, which should call `run_research_team` then `run_trader`, then the risk team and the portfolio manager). `Settings.risk_rounds` is still `ge=1` with no upper limit, so S4.3 should decide its range as S3.1/S3.3 did for the debate. S2.8 stays blocked behind the deferred S0.7.
+- After S4.3: S4.4 (portfolio manager on the deep tier returns the five-tier `PortfolioDecision`; its rationale must cite the risk discussion, which needs a way to check that, as S3.2 did with verbatim quotes; with `risk_rounds=0` there is no risk discussion, so decide that case as S3.3 did for the research manager), then S4.5 (`propagate`: `run_research_team`, `run_trader`, `run_risk_debate`, then the portfolio manager; it should also wire the real company-name resolver into the news provider, see Open issues). S2.8 stays blocked behind the deferred S0.7.
 - Post-MVP: macro news (market-wide query, fixtures, analyst section); decided during S2.4 planning.
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to

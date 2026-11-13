@@ -17,6 +17,7 @@ from ta_in.agents.news_analyst import run_news_analyst
 from ta_in.agents.research_manager import find_quotes, run_research_manager
 from ta_in.agents.research_team import run_research_team
 from ta_in.agents.researchers import MAX_DEBATE_ROUNDS, DebateError, run_investment_debate
+from ta_in.agents.risk_team import MAX_RISK_ROUNDS, run_risk_debate
 from ta_in.agents.tools import Tool, build_registry
 from ta_in.agents.trader import run_trader
 
@@ -24,6 +25,7 @@ __all__ = [
     "ANALYST_NAMES",
     "MAX_DEBATE_ROUNDS",
     "MAX_INDICATORS",
+    "MAX_RISK_ROUNDS",
     "AgentResult",
     "AnalystSpec",
     "DebateError",
@@ -47,6 +49,7 @@ __all__ = [
     "run_news_analyst",
     "run_market_analyst",
     "run_research_manager",
+    "run_risk_debate",
     "run_research_team",
     "run_trader",
     "unverified_crore_figures",
