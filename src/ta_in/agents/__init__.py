@@ -14,13 +14,16 @@ from ta_in.agents.loop import AgentResult, ToolCallRecord, TurnClient, run_agent
 from ta_in.agents.market_analyst import run_market_analyst, unverified_price_figures
 from ta_in.agents.market_tools import MAX_INDICATORS
 from ta_in.agents.news_analyst import run_news_analyst
+from ta_in.agents.researchers import MAX_DEBATE_ROUNDS, DebateError, run_investment_debate
 from ta_in.agents.tools import Tool, build_registry
 
 __all__ = [
     "ANALYST_NAMES",
+    "MAX_DEBATE_ROUNDS",
     "MAX_INDICATORS",
     "AgentResult",
     "AnalystSpec",
+    "DebateError",
     "Tool",
     "ToolCallRecord",
     "TurnClient",
@@ -36,6 +39,7 @@ __all__ = [
     "run_analysts",
     "run_fundamentals_analyst",
     "run_gated",
+    "run_investment_debate",
     "run_news_analyst",
     "run_market_analyst",
     "unverified_crore_figures",

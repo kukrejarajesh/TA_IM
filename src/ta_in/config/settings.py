@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     provider: Literal["anthropic"] = "anthropic"
     quick_model: str = "claude-haiku-5-5"
     deep_model: str = "claude-sonnet-5-5"
-    debate_rounds: int = Field(default=1, ge=1)
+    debate_rounds: int = Field(default=1, ge=1, le=3)  # 3 = MAX_DEBATE_ROUNDS (agents/researchers)
     risk_rounds: int = Field(default=1, ge=1)
     temperature: float = Field(default=0.0, ge=0.0, le=1.0)
     budget_usd: float = Field(default=1.0, gt=0.0)

@@ -69,9 +69,9 @@ def test_all_fields_load_from_env(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_reads_env_file(tmp_path: Path) -> None:
     env_file = tmp_path / "test.env"
-    env_file.write_text(f"ANTHROPIC_API_KEY={FAKE_KEY}\nTA_DEBATE_ROUNDS=4\n", encoding="utf-8")
+    env_file.write_text(f"ANTHROPIC_API_KEY={FAKE_KEY}\nTA_DEBATE_ROUNDS=2\n", encoding="utf-8")
     s = Settings(_env_file=env_file)  # type: ignore[call-arg]
-    assert s.debate_rounds == 4
+    assert s.debate_rounds == 2
 
 
 def test_missing_key_fails_with_clear_message() -> None:
@@ -91,6 +91,7 @@ def test_empty_key_fails(monkeypatch: pytest.MonkeyPatch) -> None:
     ("name", "value", "field"),
     [
         ("TA_DEBATE_ROUNDS", "0", "debate_rounds"),
+        ("TA_DEBATE_ROUNDS", "4", "debate_rounds"),  # upper limit is 3 (S3.1)
         ("TA_RISK_ROUNDS", "0", "risk_rounds"),
         ("TA_TEMPERATURE", "1.5", "temperature"),
         ("TA_TEMPERATURE", "-0.1", "temperature"),

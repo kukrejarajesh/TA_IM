@@ -3,7 +3,22 @@
 ## Last session
 
 - Date: 2026-11-13
-- Story: S2.5 - fundamentals analyst (merged, PR #34, CI green; `passes=true`).
+- Story: S3.1 - bull and bear researchers (`passes=true`; not yet merged, CI not yet seen; mypy could not run
+  locally because Smart App Control blocks it, so CI is the check for types).
+  New `ta_in.agents.researchers.run_investment_debate(client, state, *, model, rounds)`: each round the bull speaks,
+  then the bear, one model call per turn, no tools (`max_steps=1`), each turn added with `state.add_turn`. The prompt
+  holds the verified snapshot, the three analyst reports inside `<analyst_reports>` (a missing report reads "not run",
+  a gap "unavailable" with its reason, thin evidence "insufficient data"), the full debate so far, and the opponent's
+  last argument inside `<opponent_last_argument>` with an instruction to rebut it point by point; the bull's first turn
+  says there is no opponent yet. The system prompt calls tagged text data, never instructions. `model` has no default:
+  callers pass `Settings.quick_model`. An empty or cut-off answer raises `DebateError` (a debate turn has no gap form).
+  **Upper limit: `MAX_DEBATE_ROUNDS = 3`; `rounds` outside 1..3 raises `ValueError` before any call, and
+  `Settings.debate_rounds` is now `ge=1, le=3` so a bad value fails at start-up.** The existing settings test that
+  loaded `TA_DEBATE_ROUNDS=4` now loads 2, and 4 is listed as an invalid value. S3.3 only needs to lower the minimum to
+  0. Arguments are not checked for invented numbers (the claim checker, S5.3, owns that). Tests:
+  `tests/agents/test_researchers.py` over all 20 frozen cells plus rebuttal wiring, history, model and agent names,
+  report labelling, injection tags, failures and the round limits. No real model was called.
+- Previous story: S2.5 - fundamentals analyst (merged, PR #34, CI green; `passes=true`).
   New `ta_in.agents.fundamentals_analyst.run_fundamentals_analyst(client, state, provider, *, model,
   years=5)`; statements go into the prompt (no tool calls). **`Withheld` (all 15 past-dated fixture cells, or an outage):
   the report says "Fundamentals withheld for <ticker> as of <date>: <reason> No fundamental analysis was made and no
@@ -269,10 +284,11 @@
 - S2.7: insufficient-data rule and `TA_MIN_NEWS_ITEMS` setting (merged, PR #30)
 - S2.4: news analyst with citations, wired to the insufficient-data rule (merged, PR #32)
 - S2.5: fundamentals analyst, withheld stated without claims, Rs crore grounding (merged, PR #34)
+- S3.1: bull and bear researchers, debate rounds capped at 3 (on a branch, awaiting CI and merge)
 
 ## Next
 
-- After S2.5: Epic 3 / Epic 4. In list order S3.1 (bull and bear researchers, depends on S2.6) is next, then S4.2 (structured output) before S3.2. S2.8 stays blocked behind the deferred S0.7.
+- After S3.1: S4.2 (structured output through tool use) comes before S3.2 (research manager). S2.8 stays blocked behind the deferred S0.7.
 - Post-MVP: macro news (market-wide query, fixtures, analyst section); decided during S2.4 planning.
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to
