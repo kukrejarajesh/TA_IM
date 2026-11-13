@@ -16,6 +16,7 @@ ENV_NAMES = [
     "TA_RISK_ROUNDS",
     "TA_TEMPERATURE",
     "TA_BUDGET_USD",
+    "TA_MIN_NEWS_ITEMS",
 ]
 
 
@@ -95,6 +96,8 @@ def test_empty_key_fails(monkeypatch: pytest.MonkeyPatch) -> None:
         ("TA_TEMPERATURE", "-0.1", "temperature"),
         ("TA_BUDGET_USD", "0", "budget_usd"),
         ("TA_BUDGET_USD", "-1", "budget_usd"),
+        ("TA_MIN_NEWS_ITEMS", "0", "min_news_items"),
+        ("TA_MIN_NEWS_ITEMS", "-2", "min_news_items"),
         ("TA_PROVIDER", "openai", "provider"),
         ("TA_DEBATE_ROUNDS", "many", "debate_rounds"),
     ],
@@ -168,3 +171,10 @@ def test_trace_dir_default_and_override(monkeypatch: pytest.MonkeyPatch) -> None
     assert load_settings().trace_dir == Path("traces")
     monkeypatch.setenv("TA_TRACE_DIR", "out/traces")
     assert load_settings().trace_dir == Path("out/traces")
+
+
+def test_min_news_items_default_and_override(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ANTHROPIC_API_KEY", FAKE_KEY)
+    assert load_settings().min_news_items == 3
+    monkeypatch.setenv("TA_MIN_NEWS_ITEMS", "5")
+    assert load_settings().min_news_items == 5
