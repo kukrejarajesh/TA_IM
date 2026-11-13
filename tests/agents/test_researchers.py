@@ -209,11 +209,20 @@ def test_a_bad_answer_raises_instead_of_leaving_a_hole(turn: LLMTurn) -> None:
         run_investment_debate(ScriptedModel([turn]), _base_state(), model=QUICK, rounds=1)
 
 
-@pytest.mark.parametrize("rounds", [0, -1, MAX_DEBATE_ROUNDS + 1, 50])
-def test_rounds_outside_one_to_the_cap_are_rejected_before_any_call(rounds: int) -> None:
+@pytest.mark.parametrize("rounds", [-1, MAX_DEBATE_ROUNDS + 1, 50])
+def test_rounds_outside_zero_to_the_cap_are_rejected_before_any_call(rounds: int) -> None:
     model = ScriptedModel([])
     with pytest.raises(ValueError, match="rounds"):
         run_investment_debate(model, _base_state(), model=QUICK, rounds=rounds)
+    assert model.calls == []
+
+
+def test_zero_rounds_is_no_debate_and_no_model_call() -> None:
+    model = ScriptedModel([])
+    base = _base_state()
+    new = run_investment_debate(model, base, model=QUICK, rounds=0)
+    assert new == base
+    assert new.investment_debate == []
     assert model.calls == []
 
 

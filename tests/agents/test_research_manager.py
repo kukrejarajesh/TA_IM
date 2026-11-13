@@ -184,8 +184,23 @@ def test_a_second_run_replaces_the_plan() -> None:
     assert again.plan is not None and again.plan.recommendation is PortfolioRating.SELL
 
 
-@pytest.mark.parametrize("keep", ["none", "bull", "bear"])
-def test_a_debate_without_both_sides_raises_before_any_call(keep: str) -> None:
+def test_no_debate_means_the_reports_are_judged_directly_with_no_quote_rule() -> None:
+    provider = FrozenDataProvider(FIXTURES)
+    cell = _cells()[0]
+    state = _state(provider, cell.ticker, cell.as_of)
+    model = ScriptedModel([_plan_turn(NO_QUOTES, "Sell")])
+
+    new = run_research_manager(model, state, model=DEEP)
+
+    assert len(model.calls) == 1  # no retry: a quote-less plan is fine without a debate
+    assert new.plan is not None and new.plan.recommendation is PortfolioRating.SELL
+    assert "No debate took place" in _prompt(model.calls[0])
+    assert "<debate>" not in _prompt(model.calls[0])
+    assert "double quotes" not in model.calls[0]["system"]
+
+
+@pytest.mark.parametrize("keep", ["bull", "bear"])
+def test_a_half_debate_raises_before_any_call(keep: str) -> None:
     provider = FrozenDataProvider(FIXTURES)
     cell = _cells()[0]
     state = _state(provider, cell.ticker, cell.as_of)

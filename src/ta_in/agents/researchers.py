@@ -118,10 +118,11 @@ def run_investment_debate(
 ) -> AgentState:
     """Run `rounds` rounds of bull then bear; return the state with the full `investment_debate`.
 
-    `rounds` must be 1 to `MAX_DEBATE_ROUNDS`. An empty or cut-off answer raises `DebateError`.
+    `rounds` must be 0 to `MAX_DEBATE_ROUNDS`; 0 means no debate (the state comes back unchanged and
+    no model is called). An empty or cut-off answer raises `DebateError`.
     """
-    if not 1 <= rounds <= MAX_DEBATE_ROUNDS:
-        raise ValueError(f"rounds must be between 1 and {MAX_DEBATE_ROUNDS}, got {rounds}")
+    if not 0 <= rounds <= MAX_DEBATE_ROUNDS:
+        raise ValueError(f"rounds must be between 0 and {MAX_DEBATE_ROUNDS}, got {rounds}")
 
     for round_no in range(1, rounds + 1):
         for agent, side, role in _SIDES:

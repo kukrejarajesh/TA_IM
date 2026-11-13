@@ -3,8 +3,25 @@
 ## Last session
 
 - Date: 2026-11-13
-- Story: S3.2 - research manager (`passes=true`; on branch `s3.2-research-manager`, not yet merged, CI not yet
-  seen; mypy cannot run locally, so CI is the type check).
+- Story: S3.3 - debate rounds 0 to 3 with exact replay (`passes=true`; on branch `s3.3-debate-rounds`, not yet
+  merged, CI not yet seen; mypy cannot run locally, so CI is the type check).
+  `run_investment_debate` now accepts `rounds` 0 to `MAX_DEBATE_ROUNDS` (3); 0 returns the state unchanged with no
+  model call. `Settings.debate_rounds` is `ge=0, le=3` (`.env.example` says so). **Decision with you: with 0 rounds the
+  research manager still runs and judges the snapshot and analyst reports directly.** With no debate its prompt says
+  "No debate took place; judge the analyst reports and the snapshot directly", it uses a separate system prompt
+  without the quoting rule, and the quote check is skipped; with any debate the quote rule is unchanged. A debate with
+  only one side is still a `ValueError`. New `ta_in.agents.research_team.run_research_team(client, state, *,
+  debate_model, manager_model, rounds, trace=None)` = debate on the quick tier, then the manager on the deep tier;
+  this is the stage S4.5 `propagate` should call. **Replay:** nothing new in the client; prompts are built only from
+  the state in a fixed order, so a replayed run hits the same cache keys. `tests/agents/test_debate_rounds.py` uses a
+  real `LLMClient` with a scripted SDK: 0, 1, 2 and 3 rounds each run end to end (calls = 2 x rounds + 1; quick model for
+  the debate, deep for the manager); recorded then replayed runs give a byte-identical `AgentState.to_json()` with zero
+  SDK calls and all records cached at zero cost; replaying a longer run than was recorded raises `CacheMiss`. Existing
+  tests changed because 0 became valid: `rounds=0` moved out of the invalid list in `test_researchers.py`, the manager's
+  "no debate raises" case became "no debate is judged directly" (the half-debate case still raises), and in
+  `test_settings.py` `TA_DEBATE_ROUNDS=0` was the invalid example in three tests and is now `4` (and `-1` in the
+  parametrised list); a new test says 0 is valid. No real model was called.
+- Previous story: S3.2 - research manager (merged, PR #39; `passes=true`).
   New `ta_in.agents.research_manager.run_research_manager(client, state, *, model, trace=None)`: judges the debate
   and sets `state.plan` to a validated `ResearchPlan` through `complete_structured`. `model` has no default (callers
   pass `Settings.deep_model`); agent name `research_manager`. The prompt has the snapshot, the three reports inside
@@ -321,11 +338,12 @@
 - S2.5: fundamentals analyst, withheld stated without claims, Rs crore grounding (merged, PR #34)
 - S3.1: bull and bear researchers, debate rounds capped at 3 (merged, PR #36)
 - S4.2: structured output through a forced tool, one retry, loud failure with raw output in the trace (merged, PR #38)
-- S3.2: research manager on the deep tier, plan must quote both sides verbatim (on a branch, awaiting CI and merge)
+- S3.2: research manager on the deep tier, plan must quote both sides verbatim (merged, PR #39)
+- S3.3: debate rounds 0 to 3, `run_research_team`, exact replay (on a branch, awaiting CI and merge)
 
 ## Next
 
-- After S3.2: S3.3 (debate rounds 0 to 3 with deterministic replay: lowers the `debate_rounds` and `run_investment_debate` minimum to 0, and must decide what the manager does with no debate), and S4.1 (trader, uses `complete_structured` and `TraderProposal`). S2.8 stays blocked behind the deferred S0.7.
+- After S3.3: S4.1 (trader: turns the `ResearchPlan` into a `TraderProposal` through `complete_structured`; each evidence reference must point to a real state field), then S4.3 (risk team), S4.4 (portfolio manager) and S4.5 (`propagate`, which should call `run_research_team`). S2.8 stays blocked behind the deferred S0.7.
 - Post-MVP: macro news (market-wide query, fixtures, analyst section); decided during S2.4 planning.
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to

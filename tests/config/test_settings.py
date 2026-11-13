@@ -67,6 +67,12 @@ def test_all_fields_load_from_env(monkeypatch: pytest.MonkeyPatch) -> None:
     assert s.budget_usd == 12.5
 
 
+def test_zero_debate_rounds_is_valid(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ANTHROPIC_API_KEY", FAKE_KEY)
+    monkeypatch.setenv("TA_DEBATE_ROUNDS", "0")
+    assert load_settings().debate_rounds == 0
+
+
 def test_reads_env_file(tmp_path: Path) -> None:
     env_file = tmp_path / "test.env"
     env_file.write_text(f"ANTHROPIC_API_KEY={FAKE_KEY}\nTA_DEBATE_ROUNDS=2\n", encoding="utf-8")
@@ -90,7 +96,7 @@ def test_empty_key_fails(monkeypatch: pytest.MonkeyPatch) -> None:
 @pytest.mark.parametrize(
     ("name", "value", "field"),
     [
-        ("TA_DEBATE_ROUNDS", "0", "debate_rounds"),
+        ("TA_DEBATE_ROUNDS", "-1", "debate_rounds"),
         ("TA_DEBATE_ROUNDS", "4", "debate_rounds"),  # upper limit is 3 (S3.1)
         ("TA_RISK_ROUNDS", "0", "risk_rounds"),
         ("TA_TEMPERATURE", "1.5", "temperature"),
@@ -114,7 +120,7 @@ def test_invalid_values_fail_naming_the_field(
 
 
 def test_all_problems_reported_together(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("TA_DEBATE_ROUNDS", "0")
+    monkeypatch.setenv("TA_DEBATE_ROUNDS", "4")
     monkeypatch.setenv("TA_BUDGET_USD", "-1")
     with pytest.raises(SettingsError) as exc:
         load_settings()
@@ -133,7 +139,7 @@ def test_key_never_appears_in_representations(monkeypatch: pytest.MonkeyPatch) -
 
 def test_key_never_appears_in_errors(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ANTHROPIC_API_KEY", FAKE_KEY)
-    monkeypatch.setenv("TA_DEBATE_ROUNDS", "0")
+    monkeypatch.setenv("TA_DEBATE_ROUNDS", "4")
     with pytest.raises(SettingsError) as exc:
         load_settings()
     assert FAKE_KEY not in str(exc.value)
