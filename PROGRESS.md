@@ -3,7 +3,7 @@
 ## Last session
 
 - Date: 2026-11-13
-- Story: S2.4 - news analyst (branch `s2.4-news-analyst`; offline tests done, `passes` stays false until CI is green).
+- Story: S2.4 - news analyst (merged, PR #32, CI green; `passes=true`).
   New `ta_in.agents.news_analyst.run_news_analyst(client, state, provider, *, model, min_news_items, max_items=25)`.
   News goes into the prompt as numbered items `[n] <date> (<source>): <title> - <summary cut at 400 chars>` inside
   `<news_data>` tags (no tool calls: the list is short and numbering makes citations checkable). Headlines are untrusted
@@ -159,7 +159,7 @@
   (key from the environment or `.env`; `--as-of`, `--name`, `--lookback-days`) that also prints the `NewsItem` shape.
   Checked by hand against Currents on 2026-11-11 (current dates work). **Currents limits (see Open issues):** 30
   days back from today, 7 days per request, and the query needs the company name (`INFY` alone gave 0 items).
-  The company-name lookup is not wired to `IdentityProvider` yet (S2.4 / S4.5). `DataProvider.news` now returns
+  The company-name lookup is not wired to `IdentityProvider` yet (S4.5; the S2.4 analyst takes an already built provider). `DataProvider.news` now returns
   `Sequence[NewsItem]`; `.claude/rules/data.md` now also covers `news/` and `fundamentals/`.
 - Local note: Windows Smart App Control blocks mypy and pandas here, so `verify` and the commit hooks cannot run
   locally; S1.4 was committed with `--no-verify` (approved) and verified in CI instead.
@@ -244,7 +244,7 @@
 - S2.3: market analyst with grounded report (merged, PR #25)
 - S2.6: parallel analyst runner, thread-safe LLM client and trace (merged, PR #28)
 - S2.7: insufficient-data rule and `TA_MIN_NEWS_ITEMS` setting (merged, PR #30)
-- S2.4: news analyst with citations, wired to the insufficient-data rule (offline tests done; `passes` pending CI)
+- S2.4: news analyst with citations, wired to the insufficient-data rule (merged, PR #32)
 
 ## Next
 
@@ -291,8 +291,8 @@
 - **Currents query needs the company name, not only the symbol.** `INFY.NS` searched as `"INFY"` gave 0 items;
   `INFOSYS` gave 4 (by hand, 2026-11-11). The adapter now builds `("Infosys" OR "INFY") AND (finance terms)` when
   given a `name_resolver` (legal suffixes like Limited are dropped). Nothing wires the real resolver yet: it should
-  be `IdentityProvider` / `CompanyIdentity.name` (S1.6), to be connected when the news analyst (S2.4) or `propagate`
-  (S4.5) builds the provider. `scripts/news_client.py --name "Infosys Limited"` passes a name by hand.
+  be `IdentityProvider` / `CompanyIdentity.name` (S1.6), to be connected when `propagate` (S4.5) builds the provider
+  (the S2.4 analyst takes an already built provider, so it does not wire it). `scripts/news_client.py --name "Infosys Limited"` passes a name by hand.
 - Kite history has no adjusted close (`adj_close == close`); split/bonus adjustment is not verified, and
   prices were not compared with another source.
 - `src/ta_in/data/sector_map.csv` is a 5-symbol seed (RELIANCE, TCS, INFY, HDFCBANK, ICICIBANK) and must be
