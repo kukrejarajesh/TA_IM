@@ -417,3 +417,44 @@ def test_a_connection_failure_is_a_clean_one_line_error(
     assert code == 1 and out == ""
     assert "the model API failed" in err and "APIConnectionError" in err
     assert "Traceback" not in err
+
+
+# --- the number check is printed and saved (S5.3) --------------------------------------
+
+
+def test_the_number_check_lists_unmatched_figures_and_does_not_change_the_exit_code(
+    capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    sdk = PipelineSDK(thesis_extra=" A target of Rs 9,999.")
+    code, out, err = _run(capsys, _args("--run-id", "num-1"), sdk)
+    assert code == 0 and err == ""
+    assert "Number check: 1 of 1 numbers match no source" in out
+    assert "decision.investment_thesis: Rs 9,999" in out
+    assert out.index("Number check") < out.index("Run report")
+    ticker, day = _cell()
+    folder = tmp_path / "results" / ticker / day / "num-1"
+    meta = json.loads((folder / "run.json").read_text("utf-8"))
+    assert meta["claims"]["checked"] == 1 and meta["claims"]["unmatched"][0]["text"] == "Rs 9,999"
+    decision_md = (folder / "decision.md").read_text("utf-8")
+    assert "## Number check" in decision_md and "Rs 9,999" in decision_md
+
+
+def test_a_run_with_no_numbers_says_so(capsys: pytest.CaptureFixture[str]) -> None:
+    _, out, _ = _run(capsys, _args(), PipelineSDK())
+    assert "Number check: no numbers to check" in out
+
+
+def test_a_replay_prints_the_same_number_check_as_the_recording(
+    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("TA_CACHE_MODE", "record")
+    sdk = PipelineSDK(thesis_extra=" A target of Rs 9,999.")
+    _, recorded, _ = _run(capsys, _args("--run-id", "num-2"), sdk)
+    monkeypatch.delenv("TA_CACHE_MODE")
+    code, replayed, _ = _run(capsys, _args("--replay", "--run-id", "num-2"))
+    assert code == 0
+
+    def block(text: str) -> str:
+        return text.split("Number check")[1].split("Run report")[0]
+
+    assert block(replayed) == block(recorded)

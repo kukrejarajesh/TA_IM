@@ -32,6 +32,7 @@ from ta_in.agents.portfolio_manager import run_portfolio_manager
 from ta_in.agents.research_team import run_research_team
 from ta_in.agents.risk_team import run_risk_debate
 from ta_in.agents.trader import run_trader
+from ta_in.claims import ClaimReport, check_claims
 from ta_in.config import Settings
 from ta_in.data.provider import DataProvider
 from ta_in.data.snapshot import build_snapshot
@@ -59,6 +60,7 @@ class PropagateResult(BaseModel):
     llm_calls: int
     cached_calls: int
     elapsed_s: float
+    claims: ClaimReport  # numbers in the proposal and decision that match no source (S5.3)
     trace_path: Path | None = None
 
 
@@ -120,6 +122,7 @@ def propagate(
     state = run_portfolio_manager(client, state, model=deep, trace=trace)
     decision = state.decision
     assert decision is not None  # run_portfolio_manager always sets it or raises
+    claims = check_claims(state)  # reports only; it never fails the run
 
     records = client.records[first_record:]
     return PropagateResult(
@@ -132,5 +135,6 @@ def propagate(
         llm_calls=len(records),
         cached_calls=sum(1 for r in records if r.cached),
         elapsed_s=clock() - started,
+        claims=claims,
         trace_path=trace.path if trace is not None else None,
     )

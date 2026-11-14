@@ -74,8 +74,9 @@ def _quote(role: str) -> str:
 class PipelineSDK:
     """Answers every agent in the pipeline with valid, quotable output."""
 
-    def __init__(self, failing: tuple[str, ...] = ()) -> None:
+    def __init__(self, failing: tuple[str, ...] = (), thesis_extra: str = "") -> None:
         self.failing = failing
+        self.thesis_extra = thesis_extra  # appended to the decision thesis (a seeded figure)
         self.calls: list[dict[str, Any]] = []
         self.messages = SimpleNamespace(create=self._create)
 
@@ -142,7 +143,7 @@ class PipelineSDK:
             payload = {
                 "rating": "Overweight",
                 "executive_summary": "Enter in two tranches and review in three months.",
-                "investment_thesis": thesis + " Overweight, sized down.",
+                "investment_thesis": thesis + " Overweight, sized down." + self.thesis_extra,
             }
             return _tool("submit_result", payload, "tu_p")
         raise AssertionError(f"unscripted role {role}")

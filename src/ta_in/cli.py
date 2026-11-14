@@ -137,6 +137,8 @@ def _report(result: Any, ticker: str, as_of: datetime) -> str:
         lines.append(f"Time horizon: {d.time_horizon}")
     lines += [
         "",
+        result.claims.render(),
+        "",
         "Run report",
         f"  run id:  {result.run_id}",
         f"  calls:   {result.llm_calls} ({result.cached_calls} cached)",

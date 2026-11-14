@@ -236,3 +236,26 @@ def test_all_analysts_failing_stops_the_run_before_the_debate(tmp_path: Path) ->
     with pytest.raises(AllAnalystsFailedError):
         _run(_client(tmp_path, CacheMode.OFF, sdk), analysts=("market", "news"))
     assert not {"bull", "bear", "manager", "trader", "portfolio"} & set(sdk.roles())
+
+
+# --- the number check (S5.3) -----------------------------------------------------------
+
+
+def test_the_result_carries_the_number_check(tmp_path: Path) -> None:
+    clean = _run(_client(tmp_path, CacheMode.OFF, PipelineSDK()))
+    assert (
+        clean.claims.checked == 0 and clean.claims.unmatched == []
+    )  # the scripted text has no figures
+
+    seeded = _run(
+        _client(tmp_path / "b", CacheMode.OFF, PipelineSDK(thesis_extra=" A target of Rs 9,999.")),
+        run_id="seeded",
+    )
+    assert [u.text for u in seeded.claims.unmatched] == ["Rs 9,999"]
+    assert seeded.claims.unmatched[0].where == "decision.investment_thesis"
+
+
+def test_an_unmatched_number_does_not_fail_the_run(tmp_path: Path) -> None:
+    result = _run(_client(tmp_path, CacheMode.OFF, PipelineSDK(thesis_extra=" Rs 9,999 Rs 8,888.")))
+    assert len(result.claims.unmatched) == 2
+    assert result.decision is not None and result.state.decision == result.decision
