@@ -188,11 +188,13 @@ def test_a_report_with_a_wrong_price_becomes_a_gap() -> None:
     state = _state(provider, cell.ticker, cell.as_of)
     assert state.price_snapshot is not None
     wrong = state.price_snapshot.last_close * 1.05
-    model = ScriptedModel([_text_turn(f"Closed at Rs {wrong:.2f}, a strong breakout.")])
+    answer = _text_turn(f"Closed at Rs {wrong:.2f}, a strong breakout.")
+    model = ScriptedModel([answer, answer])  # the one retry gives the same answer again
     report = run_market_analyst(model, state, provider, model=MODEL).market_report
     assert report is not None
     assert report.status == "gap"
     assert f"Rs {wrong:.2f}" in (report.gap_reason or "")
+    assert len(model.calls) == 2
 
 
 # --- tools: indicator budget, point in time, schema ------------------------------------

@@ -2,7 +2,35 @@
 
 ## Last session
 
-- Date: 2026-11-13
+- Date: 2026-11-14
+- **Fix: S2.3 fix - the market analyst may derive price figures (branch `s2.3-fix-market-derived-figures`; found by the
+  first real runs; not a listed story, `feature_list.json` unchanged because S2.3's criterion "every price figure in the
+  report matches the snapshot" still holds).** **Problem:** in both real runs of 2026-11-13 (RELIANCE `real-run-2`, INFY
+  `infy-run-1`) the strict price check (D6) turned the market report into a `gap` ("Rs 1230" an unshown level; "Rs 47", a
+  correct difference), so the trader, risk team and portfolio manager said "market report unavailable". **Design (you chose
+  it over three pasted options that let unchecked numbers through):** (1) new tool `calculate(expression)` in
+  `MarketToolkit` (`agents/market_tools.py`, 3rd tool, at most 30 calls) backed by a safe `ast`-whitelist calculator
+  `agents/calc.py` (`evaluate`, `CalcError`): `+ - * /`, parentheses, `min max avg abs`; no `eval`; every numeric literal must
+  be a VERIFIED value (a snapshot price or a tool-shown value) or a small constant (integer 0 to 100, or a decimal under
+  10), and at least one must be verified, so `calculate("1230")` is refused and cannot launder a made-up number; the result
+  goes into `seen_values` so the existing report check accepts it. (2) `<judgement>...</judgement>` (at most 5 per report) for
+  levels that cannot be computed: exempt from the check but rewritten in the stored report as `[analyst judgement,
+  unverified: ...]`, so every later agent sees it is opinion; unclosed, nested, stray or more than 5 tags are a gap with no
+  retry. (3) ONE retry when only the figure check fails: the rejected report and the exact failing figures are shown and the
+  same toolkit is reused; a second failure is a gap naming both attempts' figures. (4) New prompt rule. **Two tolerances found
+  on the real INFY run and added, with tests:** a figure written with N decimals matches a shown value rounded OR TRUNCATED to
+  N decimals (the model wrote 1211.99 for a shown 1211.9955; a one-digit error such as 1188.99 for 1188.98 still fails), and
+  a calculated result also counts by absolute value (the tool returned -47.1775, the report said Rs 47.18). **Real results
+  (2026-10-21, record mode, then free replay):** RELIANCE `calc-reliance-1`: market report `ok` (27 tool calls, 2 judgement
+  labels), 15 calls, $0.0757, 108 s, rating Underweight (was Hold when the market report was lost). INFY `calc-infy-1`: still a
+  gap (the two tolerances above were not there yet; the first attempt also wrote "Rs 25.57m shares", a share count mislabelled
+  as rupees, which the retry fixed), 17 calls, $0.0622. INFY `calc-infy-2` after the tolerances: market report `ok` (13 tool
+  calls, 2 judgement labels), 12 calls, 70,343 in / 18,015 out tokens, $0.0711, 90.5 s, rating Hold. All three recordings
+  replay free. Total real spend so far about $0.34. Tests: `tests/agents/test_calc.py`, `tests/agents/test_market_derived_figures.py`
+  and updated `test_market_analyst.py` (the wrong-price test now scripts the retry answer too); 937 offline tests pass.
+  Not done: indicator, percent and volume figures are still not checked (claim checker S5.3); the "Rs" check can still mislabel
+  a non-rupee number the model writes after "Rs" (the retry caught it once); a calculator offset such as `close + 47` is allowed
+  because 47 is a small constant, but the formula is visible in the trace.
 - **Fix: S4.2 fix - no forced `tool_choice` (branch `s4.2-fix-no-forced-tool-choice`; found by the FIRST REAL RUN; not a
   listed story, `feature_list.json` is unchanged because S4.2's acceptance criteria still hold and `passes` stays true).**
   **First real runs (2026-11-13, RELIANCE.NS 2026-10-21, real Anthropic API, frozen data):** run `first-real-run` made 5 good
@@ -491,11 +519,10 @@
 
 ## Open issues
 
-- **Real-model findings (2026-11-13, see the fix entry in Last session):** the market analyst's strict price-grounding check
-  turned a real model's report into a `gap` ("Rs 1230" not in the snapshot or tool output), which lowered the quality of every
-  later stage in that run; and the CLI does not force UTF-8 stdout, so non-cp1252 characters print as "?" on a Windows
-  console or pipe. Both need a decision; neither is fixed. `.llm_cache/` and `traces/` hold the first real recordings
-  (`real-run-2` replays free); they are git-ignored.
+- **Real-model findings (2026-11-13):** (1) FIXED 2026-11-14 on branch `s2.3-fix-market-derived-figures`: the market analyst's
+  strict price check turned real reports into gaps; see the "S2.3 fix" entry in Last session. (2) OPEN: the CLI does not force
+  UTF-8 stdout, so non-cp1252 characters print as "?" on a Windows console or pipe (set `PYTHONIOENCODING=utf-8` meanwhile).
+  `.llm_cache/` and `traces/` hold the first real recordings (`real-run-2`, `infy-run-1`, `calc-*`; they replay free); git-ignored.
 - The S1.2 yfinance live test (`test_live_yfinance_smoke`) failed on 2026-11-06 with a connect timeout to Yahoo
   from the dev machine and has never passed. Run `uv run pytest -m live tests/data/test_prices.py` where Yahoo
   is reachable.
