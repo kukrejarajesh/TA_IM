@@ -8,6 +8,7 @@ from ta_in.agents.analysts import (
     parse_analysts,
     run_analysts,
 )
+from ta_in.agents.calc import CalcError, evaluate
 from ta_in.agents.evidence import insufficient_data_report, is_thin, run_gated
 from ta_in.agents.fundamentals_analyst import run_fundamentals_analyst, unverified_crore_figures
 from ta_in.agents.loop import AgentResult, ToolCallRecord, TurnClient, run_agent
@@ -30,6 +31,7 @@ __all__ = [
     "MAX_RISK_ROUNDS",
     "MIN_QUOTE_CHARS",
     "AgentResult",
+    "CalcError",
     "AnalystSpec",
     "DebateError",
     "Tool",
@@ -37,6 +39,7 @@ __all__ = [
     "TurnClient",
     "build_registry",
     "default_specs",
+    "evaluate",
     "find_quotes",
     "fundamentals_spec",
     "insufficient_data_report",
