@@ -161,7 +161,8 @@ def _decision_md(result: PropagateResult) -> str:
         _head("Final decision", result)
         + "\n".join(lines)
         + f"\n\n## Executive summary\n\n{d.executive_summary.strip()}\n\n"
-        + f"## Investment thesis\n\n{d.investment_thesis.strip()}\n"
+        + f"## Investment thesis\n\n{d.investment_thesis.strip()}\n\n"
+        + f"## Number check\n\n```\n{result.claims.render()}\n```\n"
     )
 
 
@@ -286,6 +287,7 @@ def save_run(result: PropagateResult, root: Path, *, replayed: bool = False) -> 
         "cached_calls": result.cached_calls,
         "elapsed_s": result.elapsed_s,
         "replayed": replayed,
+        "claims": result.claims.model_dump(mode="json"),
         "files": sorted(FILES),
     }
     files["run.json"] = json.dumps(meta, indent=2) + "\n"

@@ -3,7 +3,35 @@
 ## Last session
 
 - Date: 2026-11-14
-- Story: S5.2 - save each run to disk (`passes=true`; on branch `s5.2-reports`, not yet merged, CI not yet seen; mypy
+- Story: S5.3 - claim checker (`passes=true`; on branch `s5.3-claim-checker`, not yet merged, CI not yet seen; mypy
+  cannot run locally, so CI is the type check; new helper signatures are fully typed after the S5.2 CI failure). New
+  `ta_in.claims.check_claims(state, *, rel_tol=0.005) -> ClaimReport(checked, matched, unmatched[])` (also
+  `extract_numbers`, `UnmatchedClaim(where, text, value, context)`, `ClaimReport.render()`). **It only REPORTS; it never fails
+  a run** (decided in the plan: derived numbers are legitimate and cannot be matched). **Claims checked:**
+  `proposal.entry_price`, `proposal.stop_loss`, `decision.price_target`, and every number in `proposal.reasoning`,
+  `proposal.position_sizing`, `decision.executive_summary` and `decision.investment_thesis` (`time_horizon` is not a claim).
+  **Sources:** the price snapshot (close, 52-week high and low, the four returns as percent) and every number in the three
+  analyst reports (a gap or not-run report adds nothing). **Matching:** same kind only (percent with percent, amounts with
+  amounts, after unit scaling for crore, lakh, lakh crore, million, billion, trillion, thousand); a claim matches if it equals the
+  source rounded or truncated at the decimals written (`matches_shown`) or is within `rel_tol` of it (default 0.5%, a
+  parameter); signs are ignored. **Not claims (noise):** parts of dates in several formats, bare years, clock times, ratios such
+  as 1:2.3, list markers, ordinals, durations (20-day, 6 months, sessions), multipliers (`0.5x`, `2x ATR`) and bare integers 0 to
+  20; a currency sign, a percent or a unit always makes a number a claim. **Wiring:** `propagate` returns `PropagateResult.claims`;
+  the CLI prints a "Number check" block (all matched / no numbers / "M of N numbers match no source (derived figures may
+  appear here)" with one line per number: where, number, context) between the decision and the run report; `run.json` carries
+  `claims` and `decision.md` ends with a "Number check" section; the S5.2 file set is unchanged. **Calibration on real text
+  (free replays of recorded real runs):** `calc-infy-2` 24 numbers checked, 20 matched, 4 listed; `infy-current-1` 24 checked, 21
+  matched, 3 listed; every listed number is a derived percentage or ratio the model computed (for example "about 4.1%" for the
+  gap to the 200-day average, "29% below the January high", a 2.9% vs 2.0% correction between two risk analysts). The first
+  calibration also showed sizing multipliers ("0.5x starter") listed three times; that is now an ignored kind, with a test. The
+  RELIANCE recording `calc-reliance-1` could not be replayed (CacheMiss: it was recorded before the market-analyst tolerances,
+  so its flow differs). **Not done (possible follow-up, out of scope here): matching derived numbers, for example
+  `(a - b) / b` from two shown values, which would clear most of the listed percentages.** Tests:
+  `tests/reports/test_claim_checker.py` (the seeded false figure, a false percent and crore amount, matching and tolerance,
+  noise kinds, fields, counts and order, context, render, JSON), plus new assertions in `tests/replay/test_propagate.py`,
+  `tests/cli/test_cli.py` and `tests/reports/test_reports.py` (the scripted SDK gained `thesis_extra` to seed a false figure);
+  1028 offline tests pass.
+- Previous story today: S5.2 - save each run to disk (`passes=true`; on branch `s5.2-reports`, not yet merged, CI not yet seen; mypy
   cannot run locally, so CI is the type check). New `ta_in.reports.save_run(result, root, *, replayed=False)` writes
   `results/<TICKER>/<YYYY-MM-DD>/<run id>/` (the date is the IST date of `as_of`): `market_report.md`, `news_report.md`,
   `fundamentals_report.md`, `investment_debate.md`, `research_plan.md`, `trader_proposal.md`, `risk_debate.md`,
@@ -530,11 +558,12 @@
 - S4.4: portfolio manager on the deep tier, thesis must quote all three risk analysts (merged, PR #43)
 - S4.5: `propagate` runs the whole pipeline and reports cost and time; tested only with a scripted fake SDK (merged, PR #44)
 - S5.1: `ta-in run` command with `--replay`, frozen fixtures only (merged, PR #45)
-- S5.2: every run saved as Markdown and JSON under `results/`, with a run index and cost (on a branch, awaiting CI and merge)
+- S5.2: every run saved as Markdown and JSON under `results/`, with a run index and cost (merged, PR #48)
+- S5.3: claim checker lists proposal and decision numbers that match no source; printed, saved, never fails a run (on a branch, awaiting CI and merge)
 
 ## Next
 
-- After S5.2: **fix the fundamentals analyst's grounding check first (you decided to do it later):** the real current-date run `infy-current-1` lost its fundamentals report because the strict check rejected a correct sum (Common Stock + Retained Earnings = Rs 92,852 crore) and two cash outflows written as positive figures (Financing Cash Flow -39,786 and -24,161); the plan was a sign tolerance (absolute value) plus one retry that shows the failing figures, and optionally a calculator like the market analyst's. Then S5.3 (claim checker, which also owns number grounding for the trader, the risk team and the portfolio manager, and the unchecked indicator, percent and volume figures), then Epics 6 (memory) and 7 (grid runner, scoring, ablations). Live data for dates outside the frozen cells is a gap with no listed story. The CLI still does not force UTF-8 stdout (see Open issues). S2.8 stays blocked behind the deferred S0.7.
+- After S5.3: **fix the fundamentals analyst's grounding check first (you decided to do it later):** the real current-date run `infy-current-1` lost its fundamentals report because the strict check rejected a correct sum (Common Stock + Retained Earnings = Rs 92,852 crore) and two cash outflows written as positive figures (Financing Cash Flow -39,786 and -24,161); the plan was a sign tolerance (absolute value) plus one retry that shows the failing figures, and optionally a calculator like the market analyst's. Then Epics 6 (memory: S6.1 decision log, S6.2 settlement, S6.3 reflection, S6.4 portfolio manager reads past decisions) and 7 (S7.1 grid runner, S7.2 scoring, S7.4 ablations, which will count `claims.unmatched` from `run.json`; S7.3 and S7.5 stay behind the deferred S0.7). Also open: the claim checker could match derived numbers, and the indicator, percent and volume figures inside the analysts' own reports are still unchecked. Live data for dates outside the frozen cells is a gap with no listed story. The CLI still does not force UTF-8 stdout (see Open issues). S2.8 stays blocked behind the deferred S0.7.
 - Post-MVP: macro news (market-wide query, fixtures, analyst section); decided during S2.4 planning.
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to

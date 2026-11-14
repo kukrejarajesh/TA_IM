@@ -360,3 +360,18 @@ def test_replaying_a_recording_that_was_never_saved_writes_it_marked_as_a_replay
     entry = json.loads(_read(root / "index.json"))["runs"][0]
     assert entry["replayed"] is True and entry["cost_usd"] == 0.0
     assert AgentState.from_json(_read(out / "state.json")) == replayed.state
+
+
+# --- the number check is saved (S5.3) ---------------------------------------------------
+
+
+def test_the_number_check_is_saved_in_run_json_and_decision_md(tmp_path: Path) -> None:
+    result = _run(tmp_path, sdk=PipelineSDK(thesis_extra=" A level of Rs 9,999."))
+    out = save_run(result, tmp_path / "results")
+    meta = json.loads(_read(out / "run.json"))
+    assert meta["claims"]["checked"] == 1
+    assert [u["text"] for u in meta["claims"]["unmatched"]] == ["Rs 9,999"]
+    assert meta["claims"]["unmatched"][0]["where"] == "decision.investment_thesis"
+    decision = _read(out / "decision.md")
+    assert "## Number check" in decision and "1 of 1 numbers match no source" in decision
+    assert {p.name for p in out.iterdir()} == FILES  # no new file: the set is unchanged
