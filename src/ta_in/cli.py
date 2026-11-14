@@ -1,7 +1,7 @@
 """`ta-in run`: run the whole pipeline for one frozen fixture cell and print the decision.
 
     ta-in run --ticker RELIANCE.NS --date 2026-10-21 [--analysts market,news] [--rounds 1]
-              [--risk-rounds 1] [--replay] [--run-id ID] [--fixtures DIR]
+              [--risk-rounds 1] [--replay] [--run-id ID] [--results-dir DIR] [--fixtures DIR]
 
 Data comes only from the frozen fixtures (`freeze-fixtures` writes them); a ticker or date that was
 never frozen is an error that lists what exists. `--replay` answers every model call from the
@@ -60,6 +60,12 @@ def _build_parser() -> argparse.ArgumentParser:
         help="answer from the recorded response cache only (no network, no API key)",
     )
     run.add_argument("--run-id", default=None, help="run id (use the recorded id when replaying)")
+    run.add_argument(
+        "--results-dir",
+        type=Path,
+        default=None,
+        help="where to save the reports and the run index (default: Settings.results_dir)",
+    )
     run.add_argument(
         "--fixtures",
         type=Path,
@@ -162,11 +168,17 @@ def _run(args: argparse.Namespace, sdk: Any) -> int:
         new_run_id,
     )
     from ta_in.propagate import AllAnalystsFailedError, propagate
+    from ta_in.reports import run_dir, save_run, validate_run_id
 
     try:
         as_of = _parse_date(args.date)
         _check_rounds("--rounds", args.rounds)
         _check_rounds("--risk-rounds", args.risk_rounds)
+        if args.run_id is not None:  # the id becomes a trace file name and a results folder name
+            try:
+                validate_run_id(args.run_id)
+            except ValueError as err:
+                raise ValueError(f"--run-id: {err}") from None
         analysts = (
             parse_analysts(args.analysts, ANALYST_NAMES) if args.analysts is not None else None
         )
@@ -188,7 +200,7 @@ def _run(args: argparse.Namespace, sdk: Any) -> int:
     if updates:
         settings = settings.model_copy(update=updates)
 
-    run_id = args.run_id or new_run_id()
+    run_id = args.run_id if args.run_id is not None else new_run_id()
     mode = CacheMode.REPLAY if args.replay else CacheMode(settings.cache_mode)
     trace = None  # a replay writes no trace: the recording's own trace already exists
     if not args.replay:
@@ -238,7 +250,16 @@ def _run(args: argparse.Namespace, sdk: Any) -> int:
         print(f"ta-in: error: the run failed: {type(err).__name__}: {err}", file=sys.stderr)
         return 1
 
-    print(_report(result, result.state.ticker, as_of))
+    print(_report(result, result.state.ticker, as_of))  # the result is shown before it is saved
+    root = args.results_dir if args.results_dir is not None else settings.results_dir
+    try:
+        existed = run_dir(root, result.state.ticker, result.state.as_of, result.run_id).exists()
+        saved = save_run(result, root, replayed=args.replay)
+    except (OSError, ValueError) as err:
+        print(f"ta-in: error: could not save the results: {err}", file=sys.stderr)
+        return 1
+    note = " (already saved)" if existed and args.replay else ""
+    print(f"  results: {saved}{note}")
     return 0
 
 

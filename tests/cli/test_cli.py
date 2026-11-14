@@ -34,6 +34,7 @@ def _isolated(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ANTHROPIC_API_KEY", FAKE_KEY)
     monkeypatch.setenv("TA_CACHE_DIR", str(tmp_path / "cache"))
     monkeypatch.setenv("TA_TRACE_DIR", str(tmp_path / "traces"))
+    monkeypatch.setenv("TA_RESULTS_DIR", str(tmp_path / "results"))
 
 
 def _args(*extra: str, ticker: str | None = None, date: str | None = None) -> list[str]:
@@ -319,6 +320,89 @@ def test_a_rejected_request_is_a_clean_one_line_error(
     assert code == 1 and out == ""
     assert "the model API failed" in err and "BadRequestError" in err
     assert "tool_choice" in err and "Traceback" not in err and FAKE_KEY not in err
+
+
+def test_a_run_saves_its_reports_and_prints_where(
+    capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    ticker, day = _cell()
+    code, out, err = _run(capsys, _args("--run-id", "save-1"), PipelineSDK())
+    assert code == 0 and err == ""
+    folder = tmp_path / "results" / ticker / day / "save-1"
+    assert "results:" in out and str(folder) in out
+    for name in ("market_report.md", "decision.json", "state.json", "run.json", "decision.md"):
+        assert (folder / name).exists(), name
+    index = json.loads((tmp_path / "results" / "index.json").read_text("utf-8"))
+    assert [e["run_id"] for e in index["runs"]] == ["save-1"]
+    assert index["runs"][0]["cost_usd"] > 0
+
+
+def test_results_dir_flag_overrides_the_setting(
+    capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    elsewhere = tmp_path / "elsewhere"
+    code, out, _ = _run(
+        capsys, _args("--run-id", "r1", "--results-dir", str(elsewhere)), PipelineSDK()
+    )
+    assert code == 0 and (elsewhere / "index.json").exists()
+    assert not (tmp_path / "results").exists()
+
+
+@pytest.mark.parametrize("bad", ["../x", "a/b", "a b", "", ".hidden", "x" * 81])
+def test_an_unsafe_run_id_is_refused_before_anything_runs_or_is_written(
+    capsys: pytest.CaptureFixture[str], tmp_path: Path, bad: str
+) -> None:
+    sdk = PipelineSDK()
+    code, out, err = _run(capsys, _args("--run-id", bad), sdk)
+    assert code == 2 and out == "" and "--run-id" in err and "Traceback" not in err
+    assert sdk.calls == []
+    assert not (tmp_path / "traces").exists() and not (tmp_path / "results").exists()
+    assert not (tmp_path.parent / "x.jsonl").exists()
+
+
+def test_a_failed_save_exits_one_but_the_decision_is_still_printed(
+    capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    blocker = tmp_path / "blocked"
+    blocker.write_text("a file, not a directory", encoding="utf-8")
+    code, out, err = _run(capsys, _args("--results-dir", str(blocker)), PipelineSDK())
+    assert code == 1
+    assert "Rating:" in out and "Run report" in out  # the result is never hidden by a save failure
+    assert "could not save" in err and "Traceback" not in err
+
+
+def test_replaying_a_saved_run_leaves_its_files_alone(
+    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    ticker, day = _cell()
+    monkeypatch.setenv("TA_CACHE_MODE", "record")
+    assert _run(capsys, _args("--run-id", "keep-1"), PipelineSDK())[0] == 0
+    folder = tmp_path / "results" / ticker / day / "keep-1"
+    before = {p.name: p.read_bytes() for p in folder.iterdir()}
+
+    monkeypatch.delenv("TA_CACHE_MODE")
+    code, out, _ = _run(capsys, _args("--replay", "--run-id", "keep-1"))
+    assert code == 0 and "already saved" in out
+    assert {p.name: p.read_bytes() for p in folder.iterdir()} == before
+
+
+def test_replaying_a_run_that_was_never_saved_saves_it_marked_as_a_replay(
+    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    ticker, day = _cell()
+    monkeypatch.setenv("TA_CACHE_MODE", "record")
+    assert _run(capsys, _args("--run-id", "old-1"), PipelineSDK())[0] == 0
+    # Simulate a recording made before results were saved.
+    import shutil
+
+    shutil.rmtree(tmp_path / "results")
+    monkeypatch.delenv("TA_CACHE_MODE")
+    code, out, _ = _run(capsys, _args("--replay", "--run-id", "old-1"))
+    assert code == 0
+    meta = json.loads(
+        (tmp_path / "results" / ticker / day / "old-1" / "run.json").read_text("utf-8")
+    )
+    assert meta["replayed"] is True and meta["cost_usd"] == 0.0
 
 
 def test_a_connection_failure_is_a_clean_one_line_error(
