@@ -218,16 +218,19 @@ def test_per_share_and_percent_figures_are_not_checked() -> None:
 )
 def test_ungrounded_empty_or_cut_off_answers_become_gaps(turn: LLMTurn) -> None:
     provider, state = _a_current_cell()
+    # An ungrounded figure gets one retry, so script the same answer twice; empty and cut-off
+    # answers are final after one call (the second scripted answer is never used).
     report = run_fundamentals_analyst(
-        ScriptedModel([turn]), state, provider, model=MODEL
+        ScriptedModel([turn, turn]), state, provider, model=MODEL
     ).fundamentals_report
     assert report is not None and report.status == "gap"
 
 
 def test_a_gap_names_the_unverified_amount() -> None:
     provider, state = _a_current_cell()
+    answer = _text_turn("Profit was Rs 999.99 crore.")
     report = run_fundamentals_analyst(
-        ScriptedModel([_text_turn("Profit was Rs 999.99 crore.")]), state, provider, model=MODEL
+        ScriptedModel([answer, answer]), state, provider, model=MODEL
     ).fundamentals_report
     assert report is not None and "Rs 999.99 crore" in (report.gap_reason or "")
 
@@ -289,12 +292,12 @@ def test_only_the_fundamentals_report_changes() -> None:
     assert new.model_copy(update={"fundamentals_report": None}) == state
 
 
-def test_the_call_is_made_as_the_fundamentals_analyst_without_tools() -> None:
+def test_the_call_is_made_as_the_fundamentals_analyst_with_only_the_calculator() -> None:
     provider, state = _a_current_cell()
     model = ScriptedModel([quotes_a_table_value])
     run_fundamentals_analyst(model, state, provider, model=MODEL)
     assert model.calls[0]["agent"] == AgentName.FUNDAMENTALS_ANALYST.value
-    assert model.calls[0]["tools"] is None
+    assert [t["name"] for t in model.calls[0]["tools"]] == ["calculate"]  # no data tools
 
 
 class Routing:

@@ -19,9 +19,13 @@ from __future__ import annotations
 
 import ast
 import math
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from decimal import ROUND_DOWN, Decimal
+
+from pydantic import BaseModel, Field
+
+from ta_in.agents.tools import Tool
 
 MAX_LENGTH = 200
 MAX_NODES = 60
@@ -114,8 +118,8 @@ class _Evaluator:
             self.verified_operands += 1
         elif not _is_small_constant(number, decimals):
             raise CalcError(
-                f"{text} is not a value shown by the snapshot or a tool (small constants up to "
-                "100, or decimals under 10, are allowed); use only values you were shown"
+                f"{text} is not a value you were shown (the snapshot, the statements or a tool "
+                "result); small constants up to 100, or decimals under 10, are allowed"
             )
         return number
 
@@ -164,3 +168,62 @@ def evaluate(expression: str, verifier: Verifier) -> CalcResult:
     if not math.isfinite(value) or abs(value) >= MAX_ABS_RESULT:
         raise CalcError("the result is too large or not a number")
     return CalcResult(value=value, formula=formula)
+
+
+class CalcLimitReached(Exception):
+    """The analyst already used the maximum number of calculations."""
+
+
+class CalculatorInput(BaseModel):
+    expression: str = Field(
+        max_length=MAX_LENGTH,
+        description=(
+            "Arithmetic over values you were shown, e.g. '2024.00 + 90828.00' or "
+            "'avg(1.5, 2.5)'. Allowed: + - * /, parentheses, min, max, avg, abs. Every number "
+            "must be a value you were shown, or a small constant (0 to 100, or a decimal under "
+            "10). No commas or units."
+        ),
+    )
+
+
+class Calculator:
+    """A `calculate` tool over a set of shown values, shared by analysts that have no data tools.
+
+    `values` starts as the values the analyst was shown and grows with every result, so a report
+    figure equal to a result passes the grounding check. Signs are ignored when comparing (a cash
+    outflow shown as -39,786 is the value 39,786). A refused expression costs no call.
+    """
+
+    def __init__(self, values: Iterable[float], *, limit: int = 30) -> None:
+        self.values: set[float] = set(values)
+        self.calls = 0
+        self._limit = limit
+
+    def is_verified(self, value: float, decimals: int) -> bool:
+        return any(matches_shown(abs(v), abs(value), decimals) for v in self.values)
+
+    def run(self, expression: str) -> dict[str, float | str]:
+        if self.calls >= self._limit:
+            raise CalcLimitReached(
+                f"you may use at most {self._limit} calculations and already used them"
+            )
+        result = evaluate(expression, self.is_verified)
+        self.calls += 1
+        value = round(result.value, 4)
+        self.values.update((value, round(result.value, 2)))
+        return {"expression": result.formula, "value": value}
+
+    def _call(self, args: CalculatorInput) -> dict[str, float | str]:
+        return self.run(args.expression)
+
+    def tool(self) -> Tool:
+        return Tool(
+            name="calculate",
+            description=(
+                "Compute a figure you were not shown from values you were shown, for example a "
+                "sum or a difference of table values. Use its result for any derived amount in "
+                f"your report. At most {self._limit} calculations."
+            ),
+            input_model=CalculatorInput,
+            fn=self._call,
+        )

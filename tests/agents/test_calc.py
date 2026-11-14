@@ -4,7 +4,14 @@ from __future__ import annotations
 
 import pytest
 
-from ta_in.agents.calc import CalcError, CalcResult, evaluate, matches_shown
+from ta_in.agents.calc import (
+    CalcError,
+    CalcLimitReached,
+    CalcResult,
+    Calculator,
+    evaluate,
+    matches_shown,
+)
 
 VERIFIED = [1188.98, 1141.8, 2529.0, 1062.1, 1150.2]
 
@@ -179,6 +186,61 @@ def test_huge_or_non_finite_results_are_refused() -> None:
     big = "1141.80" + " * 100" * 6  # 1141.80e12
     with pytest.raises(CalcError, match="large"):
         calc(big)
+
+
+# --- the Calculator tool (S2.5 fix) ----------------------------------------------------
+
+
+def _calculator() -> Calculator:
+    return Calculator([2024.0, 90828.0, -39786.0, 1211.9955])
+
+
+def test_the_calculator_computes_from_shown_values_and_remembers_the_result() -> None:
+    calculator = _calculator()
+    out = calculator.run("2024.00 + 90828.00")
+    assert out == {"expression": "2024.00 + 90828.00", "value": 92852.0}
+    assert 92852.0 in calculator.values
+    assert calculator.calls == 1
+    assert calculator.run("92852.00 - 2024.00")["value"] == 90828.0  # a result is a shown value
+
+
+def test_the_calculator_accepts_a_negative_shown_value_written_as_positive() -> None:
+    assert _calculator().run("39786 - 1")["value"] == 39785.0  # -39,786 is shown
+
+
+def test_the_calculator_refuses_an_unshown_number_and_names_it() -> None:
+    calculator = _calculator()
+    with pytest.raises(CalcError, match="1230"):
+        calculator.run("1230 + 2024.00")
+    with pytest.raises(CalcError, match="1230"):
+        calculator.run("1230")
+    with pytest.raises(CalcError, match="verified"):
+        calculator.run("2 * 14")  # constants alone are not enough
+    assert 1230.0 not in calculator.values and calculator.calls == 0  # a refusal costs nothing
+
+
+def test_the_calculator_is_capped_and_the_cap_message_says_so() -> None:
+    calculator = Calculator([2024.0], limit=3)
+    for _ in range(3):
+        calculator.run("2024.00 * 2")
+    with pytest.raises(CalcLimitReached, match="at most 3"):
+        calculator.run("2024.00 * 2")
+
+
+def test_the_calculator_tool_has_a_schema_and_calls_run() -> None:
+    calculator = _calculator()
+    tool = calculator.tool()
+    assert tool.name == "calculate"
+    assert "expression" in tool.schema()["input_schema"]["properties"]
+    assert (
+        tool.fn(tool.input_model.model_validate({"expression": "2024.00 + 1"}))["value"] == 2025.0
+    )
+
+
+@pytest.mark.parametrize("expression", ["__import__('os')", "2024.00 ** 2", "x + 2024.00", ""])
+def test_the_calculator_inherits_the_safe_syntax_rules(expression: str) -> None:
+    with pytest.raises(CalcError):
+        _calculator().run(expression)
 
 
 def test_the_error_is_a_value_error_with_a_message_the_model_can_act_on() -> None:
