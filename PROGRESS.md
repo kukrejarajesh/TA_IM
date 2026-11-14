@@ -3,6 +3,34 @@
 ## Last session
 
 - Date: 2026-11-14
+- Story: S5.2 - save each run to disk (`passes=true`; on branch `s5.2-reports`, not yet merged, CI not yet seen; mypy
+  cannot run locally, so CI is the type check). New `ta_in.reports.save_run(result, root, *, replayed=False)` writes
+  `results/<TICKER>/<YYYY-MM-DD>/<run id>/` (the date is the IST date of `as_of`): `market_report.md`, `news_report.md`,
+  `fundamentals_report.md`, `investment_debate.md`, `research_plan.md`, `trader_proposal.md`, `risk_debate.md`,
+  `decision.md`, `decision.json` (the `PortfolioDecision`), `state.json` (the whole `AgentState`, reloads exactly) and
+  `run.json` (rating, cost, tokens, calls, cached calls, time, `replayed`, file list). **The same 11 files are written for
+  every run:** a gap report shows a `GAP` section with its reason (the real fundamentals gap from `infy-current-1` reads
+  "unverified amounts in the report: Rs 92,852 crore ..."), thin evidence says "Insufficient data", an analyst that was not
+  selected says "not run", and a debate that did not happen says "No debate took place (0 rounds)". **Index:**
+  `results/index.json` (source of truth: one entry per run with run id, ticker, date, rating, cost, tokens, calls, cached
+  calls, time, replayed, relative path, plus `total_cost_usd`) and `results/index.md` (a table with a total line), updated
+  atomically (the table first, the JSON last). **Safety:** run id (`[A-Za-z0-9][A-Za-z0-9._-]{0,79}`) and ticker are
+  validated before anything is written; a run directory is never overwritten (`FileExistsError`); files go to a temp
+  directory renamed into place; if writing or the index update fails the run directory is removed again and the index is
+  untouched; a corrupt index is refused, not overwritten. **Replay:** a replay of an already saved run writes nothing (the
+  recording's real cost stays); a replay of a recording that was never saved is written with `replayed: true` and zero
+  cost. **CLI:** after the decision and run report are printed it saves and prints `results: <path>` (with "(already
+  saved)" for a replay of a saved run); new `--results-dir` (default `Settings.results_dir`, env `TA_RESULTS_DIR`, in
+  `.env.example`; `results/` was already git-ignored); a save failure exits 1 with "could not save the results" AFTER the
+  decision is printed. **Bug closed while here: `--run-id` is now validated up front (exit 2).** Before, `--run-id ../x` made the
+  trace writer create a file outside the trace directory, and an empty `--run-id ""` was silently replaced by a new id.
+  Tests: `tests/reports/test_reports.py` (file set for default, subset-analyst, 0-round and gap runs, contents, JSON
+  round trips, run.json, index rows and total, no duplicates, unsafe ids and tickers, crash while writing, crash while
+  updating the index, corrupt index, both replay cases), new cases in `tests/cli/test_cli.py` and a settings test; 976
+  offline tests pass. Real look: replaying the two real INFY recordings (`calc-infy-2`, `infy-current-1`) saved them free
+  and the files read well. Not done: no command lists or compares saved runs beyond the index file; the fundamentals
+  analyst's strict check still turns its report into a gap (see the real-run notes below).
+- Previous work today: the S2.3 fix below.
 - **Fix: S2.3 fix - the market analyst may derive price figures (branch `s2.3-fix-market-derived-figures`; found by the
   first real runs; not a listed story, `feature_list.json` unchanged because S2.3's criterion "every price figure in the
   report matches the snapshot" still holds).** **Problem:** in both real runs of 2026-11-13 (RELIANCE `real-run-2`, INFY
@@ -501,11 +529,12 @@
 - S4.3: risk team, three analysts each answering the other two, rounds 0 to 3 (merged, PR #42)
 - S4.4: portfolio manager on the deep tier, thesis must quote all three risk analysts (merged, PR #43)
 - S4.5: `propagate` runs the whole pipeline and reports cost and time; tested only with a scripted fake SDK (merged, PR #44)
-- S5.1: `ta-in run` command with `--replay`, frozen fixtures only (on a branch, awaiting CI and merge)
+- S5.1: `ta-in run` command with `--replay`, frozen fixtures only (merged, PR #45)
+- S5.2: every run saved as Markdown and JSON under `results/`, with a run index and cost (on a branch, awaiting CI and merge)
 
 ## Next
 
-- After S5.1: S5.2 (save each agent's report as Markdown and the final decision as JSON under `results/<ticker>/<date>/<run id>/`, with an index of runs and their cost), S5.3 (claim checker, which also owns number grounding for the trader, the risk team and the portfolio manager), then Epics 6 (memory) and 7 (grid runner, scoring, ablations). **Before relying on any of it, do one real record pass with an API key** (`TA_CACHE_MODE=record ta-in run ...`: the first real call of every agent, the first real cost and time numbers, and whether real models quote verbatim as S3.2 and S4.4 require). Live data for dates outside the frozen cells is a gap with no listed story. S2.8 stays blocked behind the deferred S0.7.
+- After S5.2: **fix the fundamentals analyst's grounding check first (you decided to do it later):** the real current-date run `infy-current-1` lost its fundamentals report because the strict check rejected a correct sum (Common Stock + Retained Earnings = Rs 92,852 crore) and two cash outflows written as positive figures (Financing Cash Flow -39,786 and -24,161); the plan was a sign tolerance (absolute value) plus one retry that shows the failing figures, and optionally a calculator like the market analyst's. Then S5.3 (claim checker, which also owns number grounding for the trader, the risk team and the portfolio manager, and the unchecked indicator, percent and volume figures), then Epics 6 (memory) and 7 (grid runner, scoring, ablations). Live data for dates outside the frozen cells is a gap with no listed story. The CLI still does not force UTF-8 stdout (see Open issues). S2.8 stays blocked behind the deferred S0.7.
 - Post-MVP: macro news (market-wide query, fixtures, analyst section); decided during S2.4 planning.
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to

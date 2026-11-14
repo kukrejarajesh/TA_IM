@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     cache_mode: Literal["off", "record", "replay"] = "off"
     cache_dir: Path = Path(".llm_cache")
     trace_dir: Path = Path("traces")
+    results_dir: Path = Path("results")  # saved reports and the run index (S5.2)
     data_cache_dir: Path = Path(".data_cache")
     kite_api_key: SecretStr | None = None
     kite_access_token: SecretStr | None = None

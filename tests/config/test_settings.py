@@ -187,6 +187,13 @@ def test_trace_dir_default_and_override(monkeypatch: pytest.MonkeyPatch) -> None
     assert load_settings().trace_dir == Path("out/traces")
 
 
+def test_results_dir_default_and_override(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ANTHROPIC_API_KEY", FAKE_KEY)
+    assert load_settings().results_dir == Path("results")
+    monkeypatch.setenv("TA_RESULTS_DIR", "out/results")
+    assert load_settings().results_dir == Path("out/results")
+
+
 def test_min_news_items_default_and_override(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ANTHROPIC_API_KEY", FAKE_KEY)
     assert load_settings().min_news_items == 3
