@@ -30,6 +30,7 @@ import json
 import os
 import re
 import shutil
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -71,7 +72,7 @@ def validate_ticker(ticker: str) -> str:
     return ticker
 
 
-def run_dir(root: Path, ticker: str, as_of: Any, run_id: str) -> Path:
+def run_dir(root: Path, ticker: str, as_of: datetime, run_id: str) -> Path:
     """`<root>/<TICKER>/<YYYY-MM-DD>/<run id>/` (the date is the IST date of `as_of`)."""
     day = as_of.astimezone(IST).date().isoformat()
     return root / validate_ticker(ticker) / day / validate_run_id(run_id)
