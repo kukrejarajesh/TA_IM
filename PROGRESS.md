@@ -3,6 +3,33 @@
 ## Last session
 
 - Date: 2026-11-14
+- **Fix: S2.5 fix - the fundamentals analyst no longer loses honest derived figures (branch
+  `s2.5-fix-fundamentals-grounding`; found by the first real current-date run; not a listed story, `feature_list.json`
+  unchanged because S2.5's criterion, "past-dated cells say withheld and make no fundamental claims", still holds).**
+  **Problem:** in `infy-current-1` (INFY 2026-11-11) a 7,000-character fundamentals report was thrown away because 3 of ~25
+  `Rs <n> crore` amounts failed the strict check, so the trader, risk team and portfolio manager said "fundamentals report
+  unavailable": `Rs 92,852 crore` was a correct sum (Common Stock 2,024 + Retained Earnings 90,828, balance sheet 2026-03-31) and
+  `Rs 39,786 crore` / `Rs 24,161 crore` were Financing Cash Flow rows shown as -39,786 and -24,161 and written as positive
+  outflows. **Same remedy as the market analyst:** (1) `unverified_crore_figures` compares by ABSOLUTE value and accepts a figure
+  equal to a shown value rounded or truncated at the decimals written (`matches_shown`); a wrong digit (39,787 for 39,786) still
+  fails and other units (lakh, lakh crore, million, billion, trillion) are still unverifiable. (2) New shared class
+  `Calculator` in `agents/calc.py` (the `calculate` tool over a set of shown values: same safe evaluator, operands must be
+  shown values or small constants, results are remembered, signs ignored, capped at 30 successful calls, a refused expression
+  costs nothing); the fundamentals analyst now runs with that tool and up to 8 steps (it had none and 1 step). (3) ONE retry
+  when only the amount check fails: the rejected report and the exact failing amounts are shown and the same calculator is
+  reused; a second failure is a gap naming both attempts. (4) Prompt: derive sums, differences and ratios with `calculate`;
+  write a cash outflow as a positive amount and say it is an outflow. Withheld past-dated cells still make no model call.
+  **Real results (2026-11-11 cells, record mode, then free replay, all three analysts `ok`):** INFY `fund-infy-1`: fundamentals
+  `ok` (this is the case that failed; the retry WAS needed once), 17 calls, 117,566 in / 34,837 out tokens, $0.0891, 143.5 s,
+  rating Hold, number check 1 of 33 listed (a derived 3.6%); HDFCBANK `fund-hdfcbank-1` (a bank, different statements):
+  fundamentals `ok` on the first attempt, 15 calls, $0.0770, 99 s, rating Hold, number check all 26 matched. Real spend this
+  task about $0.17, total about $0.58. Observed: the model used `calculate` for growth percentages that need no check (52
+  requests on INFY, some refused, 17 on HDFCBANK): harmless but wasteful; the prompt could say percentages need no tool. Tests:
+  new `tests/agents/test_fundamentals_derived_figures.py` (the exact INFY regression on the real frozen cell: first answer
+  retried, the retry calculates the sum and passes), `Calculator` cases in `tests/agents/test_calc.py`, and
+  `test_fundamentals_analyst.py` updated where a bad answer now needs its retry answer scripted and the call now has the
+  `calculate` tool; 1047 offline tests pass. **Known duplication: `MarketToolkit` still has its own copy of the calculator
+  logic; unifying it with `Calculator` is a later cleanup.**
 - Story: S5.3 - claim checker (`passes=true`; on branch `s5.3-claim-checker`, not yet merged, CI not yet seen; mypy
   cannot run locally, so CI is the type check; new helper signatures are fully typed after the S5.2 CI failure). New
   `ta_in.claims.check_claims(state, *, rel_tol=0.005) -> ClaimReport(checked, matched, unmatched[])` (also
@@ -563,7 +590,7 @@
 
 ## Next
 
-- After S5.3: **fix the fundamentals analyst's grounding check first (you decided to do it later):** the real current-date run `infy-current-1` lost its fundamentals report because the strict check rejected a correct sum (Common Stock + Retained Earnings = Rs 92,852 crore) and two cash outflows written as positive figures (Financing Cash Flow -39,786 and -24,161); the plan was a sign tolerance (absolute value) plus one retry that shows the failing figures, and optionally a calculator like the market analyst's. Then Epics 6 (memory: S6.1 decision log, S6.2 settlement, S6.3 reflection, S6.4 portfolio manager reads past decisions) and 7 (S7.1 grid runner, S7.2 scoring, S7.4 ablations, which will count `claims.unmatched` from `run.json`; S7.3 and S7.5 stay behind the deferred S0.7). Also open: the claim checker could match derived numbers, and the indicator, percent and volume figures inside the analysts' own reports are still unchecked. Live data for dates outside the frozen cells is a gap with no listed story. The CLI still does not force UTF-8 stdout (see Open issues). S2.8 stays blocked behind the deferred S0.7.
+- After the S2.5 fix: Epics 6 (memory: S6.1 decision log, S6.2 settlement, S6.3 reflection, S6.4 portfolio manager reads past decisions) and 7 (S7.1 grid runner, S7.2 scoring, S7.4 ablations, which will count `claims.unmatched` from `run.json`; S7.3 and S7.5 stay behind the deferred S0.7). Open smaller items: the CLI still does not force UTF-8 stdout; the claim checker could match derived numbers; the market analyst's rupee check can be fooled by a non-rupee number written after "Rs" ("Rs 25.57m shares", caught once by the retry); `MarketToolkit` and `Calculator` duplicate the calculator logic; indicator, percent and volume figures are unchecked; the fundamentals analyst may waste calculate calls on percentages. Live data for dates outside the frozen cells is a gap with no listed story. S2.8 stays blocked behind the deferred S0.7.
 - Post-MVP: macro news (market-wide query, fixtures, analyst section); decided during S2.4 planning.
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to
