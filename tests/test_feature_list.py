@@ -5,7 +5,7 @@ from typing import Any
 import pytest
 
 FEATURE_LIST = Path(__file__).resolve().parent.parent / "feature_list.json"
-EXPECTED_COUNT = 43
+EXPECTED_COUNT = 49
 REQUIRED_FIELDS = {
     "id",
     "epic",

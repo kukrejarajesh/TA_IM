@@ -2,7 +2,45 @@
 
 ## Last session
 
+- Date: 2026-11-17
+- **Epic 8: Live Mode is planned; E6 (memory) and E7 (grid runner, scoring, ablations) are PAUSED by decision (they stay in
+  `feature_list.json` as `passes=false`; Epic 8 does not depend on them).** Why: the pipeline is source-agnostic
+  (`propagate` takes any data provider), but the CLI only wires `FrozenDataProvider`, so `ta-in run` can run only the frozen cells
+  (the M&M report needed a side-folder freeze). All live pieces already exist and are used by `freeze-fixtures`
+  (`IdentityProvider` + Kite resolver, `PriceProvider` + Kite fetcher, `NewsService` + `CurrentsNewsProvider`,
+  `FundamentalsService` + bfinance); Epic 8 is the glue. **Decisions with you: core live mode only (six stories) and you paste
+  the stories into `feature_list.json` yourself** (the file's rules and the pre-commit guard forbid me adding stories; the test
+  pins the count, now 49). **Stories:** S8.1 `LiveDataProvider` + `make_live_provider(settings, clock)` composing the four
+  services behind the `DataProvider` interface (also wires the company-name resolver into the news provider and makes
+  `freeze-fixtures` use the same factory); S8.2 live run data snapshot (a `RecordingProvider` saves identity, prices, news and
+  fundamentals in the existing fixture layout, with its own manifest, under `results/<TICKER>/<date>/<run id>/data/`, so a live run
+  replays offline and the `freeze --only` manifest-clobber hazard disappears); S8.3 `ta-in run --live` (as_of = injected "now" in
+  IST, `--date` for a recent day, mutually exclusive with `--fixtures`, `--replay` from the run's snapshot, clear credential
+  errors); S8.4 `ta-in check-live` (one line per source: Kite token, Currents key, bfinance, Anthropic key; no secret printed);
+  S8.5 provenance and safety (sources and freshness in `run.json` and `decision.md`, stale or degraded data warnings, a static
+  test that no order-placing method appears in `src`, "paper trading only" banner); S8.6 an opt-in `live`-marked smoke test and a
+  documented real run for INFY.NS and M&M.NS. **Principles:** live is a provider, not a new pipeline (no agent or prompt change);
+  the CLI supplies "now" and the data layer never reads it; the visibility rule stays (a day's bar is visible from 15:30 IST);
+  honest limits stay visible (fundamentals current-date only, news 30 days, Kite token daily); paper trading only. **Out of scope
+  (follow-ups):** news query quality for "M&M" (1 item), any-ticker sector labels, a second fundamentals source for the missing
+  cash row, multi-ticker batches, scheduling, news and fundamentals caching, matching derived numbers in the claim checker.
+  Real runs per story cost cents (about $0.08 to $0.12 each).
 - Date: 2026-11-14
+- **First report for a stock outside the committed fixtures: Mahindra & Mahindra (`M&M.NS`), run id `mm-1` (branch
+  `local-mm-run`; only a `.gitignore` line and this note are committed).** The CLI reads only frozen data and M&M is not in the
+  committed fixture set, so its data was frozen into a SEPARATE git-ignored folder: `local_fixtures/` (added to `.gitignore`)
+  with `freeze-fixtures --fixture-set local_fixtures/fixture_set.json --out local_fixtures`, where the set file is
+  `{"tickers": ["M&M.NS"], "past_dates": [], "decision_time": "16:00:00", "include_current": true,
+  "holding_period_trading_days": 5}`, then `ta-in run --ticker "M&M.NS" --date 2026-11-14 --fixtures local_fixtures --run-id mm-1`
+  (quote the ticker in a shell: `&`). **Never freeze a new ticker with `--only` against `tests/fixtures`: `freeze_fixtures` writes
+  `manifest.json` from only the tickers it froze, so it would REPLACE the committed manifest and break the fixture tests (a
+  limitation to fix: merge into the existing manifest).** Frozen on Saturday 2026-11-14 22:29 IST: identity "MAHINDRA & MAHINDRA"
+  (sector unknown: `sector_map.csv` has only the five seed symbols), bars through Fri 11-13, statements present, but **only 1 news
+  item (a generic market wrap)**, so the news analyst reported "insufficient data: found 1 news item, the minimum is 3" and the
+  decision rests on prices and fundamentals; whether Currents is weak for "M&M" or the `&` in the query hurts was not
+  investigated. **Result (real API, recorded, replays free):** Rating **Hold** (close Rs 3333.00), market and fundamentals reports
+  `ok`, 17 calls, 112,466 in / 28,950 out tokens, $0.0815, 113.7 s, number check 1 of 39 listed (a derived "about 4% below
+  resistance"). Saved under `results/M&M.NS/2026-11-14/mm-1/`. Real spend this task about $0.08, total about $0.66.
 - **Fix: S2.5 fix - the fundamentals analyst no longer loses honest derived figures (branch
   `s2.5-fix-fundamentals-grounding`; found by the first real current-date run; not a listed story, `feature_list.json`
   unchanged because S2.5's criterion, "past-dated cells say withheld and make no fundamental claims", still holds).**
@@ -590,7 +628,7 @@
 
 ## Next
 
-- After the S2.5 fix: Epics 6 (memory: S6.1 decision log, S6.2 settlement, S6.3 reflection, S6.4 portfolio manager reads past decisions) and 7 (S7.1 grid runner, S7.2 scoring, S7.4 ablations, which will count `claims.unmatched` from `run.json`; S7.3 and S7.5 stay behind the deferred S0.7). Open smaller items: the CLI still does not force UTF-8 stdout; the claim checker could match derived numbers; the market analyst's rupee check can be fooled by a non-rupee number written after "Rs" ("Rs 25.57m shares", caught once by the retry); `MarketToolkit` and `Calculator` duplicate the calculator logic; indicator, percent and volume figures are unchecked; the fundamentals analyst may waste calculate calls on percentages. Live data for dates outside the frozen cells is a gap with no listed story. S2.8 stays blocked behind the deferred S0.7.
+- **Next: Epic 8 (Live Mode), in this order: S8.1 and S8.2, then S8.3, S8.4 and S8.5, then S8.6** (each with its own plan, tests first, a PR and CI before `passes=true`). E6 (S6.1 to S6.4) and E7 (S7.1, S7.2, S7.4; S7.3 and S7.5 also wait for the deferred S0.7) are paused. Open smaller items, none blocking: the CLI still does not force UTF-8 stdout; the claim checker could match derived numbers; the market analyst's rupee check can be fooled by a non-rupee number written after "Rs"; `MarketToolkit` and `Calculator` duplicate the calculator logic; indicator, percent and volume figures are unchecked; the fundamentals analyst may waste calculate calls on percentages; bfinance has no cash row (cash held cannot be reported). S2.8 stays blocked behind the deferred S0.7.
 - Post-MVP: macro news (market-wide query, fixtures, analyst section); decided during S2.4 planning.
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to
@@ -604,6 +642,11 @@
 
 ## Open issues
 
+- **`freeze-fixtures --only` replaces the whole manifest** (2026-11-14): `freeze_fixtures` builds `manifest.json` from only the tickers it froze, so
+  freezing one ticker into `tests/fixtures` would drop the others and break the fixture tests; use a separate `--out` folder until it merges.
+  **Also: the CLI can only run frozen data; there is no live data mode** (a `LiveDataProvider` combining the existing Kite, Currents and bfinance
+  services plus a `--live` flag would be needed; no listed story). **News for "M&M" was thin (1 item):** the Currents query may be weak for names
+  containing "&".
 - **Real-model findings (2026-11-13):** (1) FIXED 2026-11-14 on branch `s2.3-fix-market-derived-figures`: the market analyst's
   strict price check turned real reports into gaps; see the "S2.3 fix" entry in Last session. (2) OPEN: the CLI does not force
   UTF-8 stdout, so non-cp1252 characters print as "?" on a Windows console or pipe (set `PYTHONIOENCODING=utf-8` meanwhile).
