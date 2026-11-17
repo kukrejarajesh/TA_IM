@@ -3,6 +3,23 @@
 ## Last session
 
 - Date: 2026-11-17
+- Story: S8.3 - `ta-in run --live` (`passes=true`; on branch `s8.3-live-cli`, not yet merged, CI not yet seen). **`ta-in run --live
+  --ticker INFY.NS`** runs the full pipeline on current data for any `.NS` ticker: `--date` is optional with `--live` (default now;
+  a past day means 16:00 IST that day, with notes that fundamentals are withheld after 2 days and news is unavailable after 30; a future
+  date is refused), `--live` and `--fixtures` are mutually exclusive (argparse refuses both). Credentials are collected together, so
+  one exit-2 message names every missing variable (`ANTHROPIC_API_KEY`, `TA_KITE_API_KEY`, `TA_KITE_ACCESS_TOKEN`; Currents is optional
+  and shows as degraded news), never a value, no traceback; an expired Kite token is exit 1 with "generate a new one" before any model
+  call. A live run **records the model answers by default** (cache `off` is promoted to `record`, with a note) so it can be replayed;
+  `TA_CACHE_MODE=replay` without `--replay` is refused. Output adds a **Data block** (identity, prices with last bar date, news
+  count or why degraded, fundamentals period or why withheld, the recording note), then `save_run` and `write_snapshot` into
+  `results/<TICKER>/<date>/<run id>/data/`. **`--live --replay --ticker T --run-id ID`** loads that saved snapshot with
+  `FrozenDataProvider`: no credentials, no network, no Anthropic key, no new files ("already saved"). Test seams on `main`:
+  `sdk`, `clock`, `live_factory`. `live.missing_credentials` is now public; shared fakes moved to `tests/support/live_fakes.py`.
+  Tests: `tests/cli/test_cli_live.py`; 1118 offline tests pass, also with `socket.connect` blocked for `tests/cli` and `tests/live`.
+  **Real checks (user's key):** `run --live INFY.NS` (id live-infy-1): Underweight, 21 calls, $0.1150, 138 s, Data block all live
+  (Kite 272 bars to 2026-11-17, 4 news, fundamentals to 2026-03-31), 1 of 18 numbers unmatched by the claim checker;
+  `run --live M&M.NS` (live-mm-1): Hold, 16 calls, $0.0864, 107 s, news 2 items; `run --live --replay INFY.NS live-infy-1`:
+  21 of 21 cached, $0, 1.5 s, identical decision. Not done here: freshness warnings, banner and order scan (S8.5), preflight (S8.4).
 - Story: S8.2 - live run data snapshot (`passes=true`; on branch `s8.2-live-snapshot`, not yet merged, CI not yet seen). **mypy now
   runs locally** (it passed on the S8.1 commit hooks and `python -m mypy src` reports "no issues found in 66 source files"); the
   only pre-commit hook still blocked here is `check-added-large-files` (Application Control, WinError 4551), so a commit still
@@ -679,7 +696,7 @@
 
 ## Next
 
-- **Next: Epic 8 (Live Mode), in this order: S8.3 (S8.1 and S8.2 are done), then S8.4 and S8.5, then S8.6** (each with its own plan, tests first, a PR and CI before `passes=true`). E6 (S6.1 to S6.4) and E7 (S7.1, S7.2, S7.4; S7.3 and S7.5 also wait for the deferred S0.7) are paused. Open smaller items, none blocking: the CLI still does not force UTF-8 stdout; the claim checker could match derived numbers; the market analyst's rupee check can be fooled by a non-rupee number written after "Rs"; `MarketToolkit` and `Calculator` duplicate the calculator logic; indicator, percent and volume figures are unchecked; the fundamentals analyst may waste calculate calls on percentages; bfinance has no cash row (cash held cannot be reported). S2.8 stays blocked behind the deferred S0.7.
+- **Next: Epic 8 (Live Mode), in this order: S8.4 and S8.5 (S8.1 to S8.3 are done), then S8.6** (each with its own plan, tests first, a PR and CI before `passes=true`). E6 (S6.1 to S6.4) and E7 (S7.1, S7.2, S7.4; S7.3 and S7.5 also wait for the deferred S0.7) are paused. Open smaller items, none blocking: the CLI still does not force UTF-8 stdout; the claim checker could match derived numbers; the market analyst's rupee check can be fooled by a non-rupee number written after "Rs"; `MarketToolkit` and `Calculator` duplicate the calculator logic; indicator, percent and volume figures are unchecked; the fundamentals analyst may waste calculate calls on percentages; bfinance has no cash row (cash held cannot be reported). S2.8 stays blocked behind the deferred S0.7.
 - Post-MVP: macro news (market-wide query, fixtures, analyst section); decided during S2.4 planning.
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to

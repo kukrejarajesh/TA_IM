@@ -102,7 +102,10 @@ class _MissingCurrents:
         raise RuntimeError("CURRENTS_API_KEY not set")
 
 
-def _missing_kite(settings: Settings) -> list[str]:
+def missing_credentials(settings: Settings) -> list[str]:
+    """The required live credentials that are not set, as variable names (never values).
+
+    Kite is required; a missing Currents key is not an error (news becomes an explicit gap)."""
     return [
         name
         for name, value in (
@@ -119,7 +122,7 @@ def make_live_sources(settings: Settings, *, clock: Callable[[], datetime]) -> L
     `clock` returns a timezone-aware "now"; it decides what counts as a current date for
     fundamentals and how far back Currents can be asked.
     """
-    missing = _missing_kite(settings)
+    missing = missing_credentials(settings)
     if missing:
         raise LiveConfigError(missing)
     kite = kite_client_from_settings(settings)
@@ -230,4 +233,5 @@ __all__ = [
     "LiveSources",
     "UnknownTickerError",
     "make_live_sources",
+    "missing_credentials",
 ]
