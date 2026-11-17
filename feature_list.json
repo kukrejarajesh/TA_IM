@@ -887,7 +887,7 @@
     "acceptance": ["The saved folder loads with FrozenDataProvider and a re-run from it with the recorded model answers gives an identical state",
                     "A snapshot is never overwritten"],
     "requirements": ["L2"], "size": "M", "test": "tests/live/test_live_snapshot.py",
-    "depends_on": ["S8.1", "S1.8", "S5.2"], "passes": false},
+    "depends_on": ["S8.1", "S1.8", "S5.2"], "passes": true},
     {"id": "S8.3", "epic": "E8", "sprint": 13,
     "title": "Command line live mode: ta-in run --live --ticker T runs any NSE ticker on current data, with --date for a recent day and --replay from the run's saved snapshot",
     "acceptance": ["A live run completes end to end in a test with fake sources and prints the decision, cost, time and which sources were live",

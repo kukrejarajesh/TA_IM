@@ -3,6 +3,29 @@
 ## Last session
 
 - Date: 2026-11-17
+- Story: S8.2 - live run data snapshot (`passes=true`; on branch `s8.2-live-snapshot`, not yet merged, CI not yet seen). **mypy now
+  runs locally** (it passed on the S8.1 commit hooks and `python -m mypy src` reports "no issues found in 66 source files"); the
+  only pre-commit hook still blocked here is `check-added-large-files` (Application Control, WinError 4551), so a commit still
+  needs `--no-verify` for that one hook. New `ta_in.live_snapshot`: **`RecordingProvider(make_inner)`** implements `DataProvider`
+  by delegating to the provider `make_inner(sink)` builds (so `RecordingProvider(lambda sink: LiveDataProvider(sources,
+  event_sink=sink))`; the sink collects the news events) and remembering identity, prices, news, fundamentals and the `as_of`;
+  thread-safe (the analysts call it in parallel); the FIRST result of each kind is kept and a later different one is noted as a
+  divergence (put in the cell's `errors`) so a snapshot is never silently inconsistent; an inner failure is recorded and re-raised
+  unchanged. **`write_snapshot(recorder, run_dir, *, ticker, frozen_at, sources, holding_period_trading_days=5)`** writes
+  `<run_dir>/data/` in the fixture layout (`manifest.json`, `snapshots/identity/<T>.json`, `snapshots/prices/<T>.json`,
+  `snapshots/cells/<T>/<date>.json` with price snapshot, news, news events, fundamentals or `Withheld`, errors), so
+  `FrozenDataProvider` and the CLI's `--fixtures <run_dir>/data` load it unchanged and a re-run with the recorded model answers is
+  byte-identical. It validates the ticker and needs an existing run folder; needs identity and prices recorded; **never overwrites
+  (`FileExistsError`)**; is atomic (temp folder renamed; a crash leaves nothing, and a retry works). Each run has its own root, so the
+  `freeze --only` manifest-clobber hazard cannot happen for live runs. No change to `propagate`, agents, `save_run` or the S5.2
+  file set: **S8.3 must call `save_run` first and then `write_snapshot` into the same run folder.** Tests:
+  `tests/live/test_live_snapshot.py` (20 tests: a full pipeline run through the recorder with an `as_of` that has seconds, then a replay
+  from the saved folder with zero SDK calls and a byte-identical state; read-back equality; manifest and the CLI's cell lookup;
+  Withheld fundamentals and a news gap surviving; current fundamentals as data; `M&M.NS` as a name; 16 threads; divergence; errors;
+  never overwritten; crash leaves nothing; unsafe ticker and missing folder; no credential words in the files; no order method in
+  the module); they also pass with `socket.connect` blocked; 1094 offline tests pass. **Real check (no model call):** real INFY.NS
+  through `RecordingProvider` over the real `LiveDataProvider` (identity INFOSYS, 272 bars, 4 news, current fundamentals), saved to a
+  temp folder, read back with `FrozenDataProvider`: identity, prices, news and fundamentals all identical; a second write refused.
 - Story: S8.1 - LiveDataProvider (`passes=true`; on branch `s8.1-live-provider`, not yet merged, CI not yet seen; mypy cannot run
   locally, so CI is the type check; new signatures are fully typed). New `ta_in.live`: **`make_live_sources(settings, *, clock)`**
   is now the ONE place the real sources are wired: `IdentityProvider` + Kite resolver (sector from the 5-symbol map),
@@ -656,7 +679,7 @@
 
 ## Next
 
-- **Next: Epic 8 (Live Mode), in this order: S8.2 (S8.1 is done), then S8.3, S8.4 and S8.5, then S8.6** (each with its own plan, tests first, a PR and CI before `passes=true`). E6 (S6.1 to S6.4) and E7 (S7.1, S7.2, S7.4; S7.3 and S7.5 also wait for the deferred S0.7) are paused. Open smaller items, none blocking: the CLI still does not force UTF-8 stdout; the claim checker could match derived numbers; the market analyst's rupee check can be fooled by a non-rupee number written after "Rs"; `MarketToolkit` and `Calculator` duplicate the calculator logic; indicator, percent and volume figures are unchecked; the fundamentals analyst may waste calculate calls on percentages; bfinance has no cash row (cash held cannot be reported). S2.8 stays blocked behind the deferred S0.7.
+- **Next: Epic 8 (Live Mode), in this order: S8.3 (S8.1 and S8.2 are done), then S8.4 and S8.5, then S8.6** (each with its own plan, tests first, a PR and CI before `passes=true`). E6 (S6.1 to S6.4) and E7 (S7.1, S7.2, S7.4; S7.3 and S7.5 also wait for the deferred S0.7) are paused. Open smaller items, none blocking: the CLI still does not force UTF-8 stdout; the claim checker could match derived numbers; the market analyst's rupee check can be fooled by a non-rupee number written after "Rs"; `MarketToolkit` and `Calculator` duplicate the calculator logic; indicator, percent and volume figures are unchecked; the fundamentals analyst may waste calculate calls on percentages; bfinance has no cash row (cash held cannot be reported). S2.8 stays blocked behind the deferred S0.7.
 - Post-MVP: macro news (market-wide query, fixtures, analyst section); decided during S2.4 planning.
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to
