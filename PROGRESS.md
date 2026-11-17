@@ -3,6 +3,34 @@
 ## Last session
 
 - Date: 2026-11-17
+- Story: S8.1 - LiveDataProvider (`passes=true`; on branch `s8.1-live-provider`, not yet merged, CI not yet seen; mypy cannot run
+  locally, so CI is the type check; new signatures are fully typed). New `ta_in.live`: **`make_live_sources(settings, *, clock)`**
+  is now the ONE place the real sources are wired: `IdentityProvider` + Kite resolver (sector from the 5-symbol map),
+  `PriceProvider` + Kite fetcher (cache in `data_cache_dir`), `NewsService` + `CurrentsNewsProvider` **with the company-name
+  resolver finally wired** (`identity.name`, so the Currents query uses "INFOSYS" as well as "INFY"), `FundamentalsService` +
+  bfinance; the injected `clock` decides what counts as a current date and how far back Currents is asked; constructing the sources
+  makes no network call. `LiveSources` (frozen dataclass: identity, prices, `make_news_service(event_sink)`, fundamentals,
+  `degraded`). **`LiveDataProvider(sources, event_sink=None)` implements `DataProvider`:** every method needs a timezone-aware
+  `as_of`; prices, news and fundamentals each go through `guard_records` / a statement-period check, so a later-dated record
+  raises `PointInTimeError` (never silently filtered; the services still filter first); news and fundamentals keep the
+  services' explicit behaviour (empty list plus a `news.provider_failed` event; `Withheld` with the reasons, and for past dates
+  without calling bfinance); identity and prices failures raise `LiveSourceError(source, reason)` (reason trimmed to 300
+  characters; a Kite `TokenException` is recognised by class name and reads "Kite access token missing or expired: generate a new
+  one (tokens expire daily)"); an unknown ticker still raises `UnknownTickerError` so a run stops before any agent. Missing Kite
+  credentials raise `LiveConfigError` naming every missing variable at once (never a value); **a missing Currents key is not fatal:
+  news becomes an explicit gap through a stand-in provider and `degraded` lists "news: CURRENTS_API_KEY not set"** (S8.3 and S8.5
+  print it). **`freeze-fixtures` now builds its sources through the factory** (`fixtures/cli.py`; exit 2 still for a missing
+  Currents key, and now also for missing Kite variables, naming them). No agent, `propagate` or data-service change. Tests:
+  `tests/live/test_live_provider.py` (27 tests: the interface, naive `as_of`, leaky price, news and statement fakes, every failure
+  mode, the factory wiring with a fake Kite and a patched `requests.get`, both freeze paths, and a static check that `live.py`
+  names no order method); they also pass with `socket.connect` blocked, **which caught a mistake in my first version of a test (it
+  patched an already-bound default argument and so reached the real Currents API with a fake key; fixed to patch `requests.get`)**;
+  1074 offline tests pass. **Real check (no model call, free):** `LiveDataProvider` against the real sources at 2026-11-17 18:11
+  IST: INFY.NS identity INFOSYS / Information Technology, 272 bars with today's bar (after the 15:30 close), **4 news items (was 1
+  to 3 before the name lookup)**, fundamentals current (income to 2026-03-31, balance to 2026-09-30); M&M.NS identity MAHINDRA &
+  MAHINDRA with sector None, 272 bars, 2 news items (still thin), fundamentals current. A real `freeze-fixtures` run for INFY into
+  a temp folder worked through the factory (1 cell, news=4, fundamentals=data). Not done here: S8.2 (save each live run's data),
+  S8.3 (`ta-in run --live`).
 - **Epic 8: Live Mode is planned; E6 (memory) and E7 (grid runner, scoring, ablations) are PAUSED by decision (they stay in
   `feature_list.json` as `passes=false`; Epic 8 does not depend on them).** Why: the pipeline is source-agnostic
   (`propagate` takes any data provider), but the CLI only wires `FrozenDataProvider`, so `ta-in run` can run only the frozen cells
@@ -628,7 +656,7 @@
 
 ## Next
 
-- **Next: Epic 8 (Live Mode), in this order: S8.1 and S8.2, then S8.3, S8.4 and S8.5, then S8.6** (each with its own plan, tests first, a PR and CI before `passes=true`). E6 (S6.1 to S6.4) and E7 (S7.1, S7.2, S7.4; S7.3 and S7.5 also wait for the deferred S0.7) are paused. Open smaller items, none blocking: the CLI still does not force UTF-8 stdout; the claim checker could match derived numbers; the market analyst's rupee check can be fooled by a non-rupee number written after "Rs"; `MarketToolkit` and `Calculator` duplicate the calculator logic; indicator, percent and volume figures are unchecked; the fundamentals analyst may waste calculate calls on percentages; bfinance has no cash row (cash held cannot be reported). S2.8 stays blocked behind the deferred S0.7.
+- **Next: Epic 8 (Live Mode), in this order: S8.2 (S8.1 is done), then S8.3, S8.4 and S8.5, then S8.6** (each with its own plan, tests first, a PR and CI before `passes=true`). E6 (S6.1 to S6.4) and E7 (S7.1, S7.2, S7.4; S7.3 and S7.5 also wait for the deferred S0.7) are paused. Open smaller items, none blocking: the CLI still does not force UTF-8 stdout; the claim checker could match derived numbers; the market analyst's rupee check can be fooled by a non-rupee number written after "Rs"; `MarketToolkit` and `Calculator` duplicate the calculator logic; indicator, percent and volume figures are unchecked; the fundamentals analyst may waste calculate calls on percentages; bfinance has no cash row (cash held cannot be reported). S2.8 stays blocked behind the deferred S0.7.
 - Post-MVP: macro news (market-wide query, fixtures, analyst section); decided during S2.4 planning.
 - Post-MVP: add runtime caching for news and fundamentals (decided 2026-11-11; not a listed story). Today only prices,
   identity and LLM responses are cached; each news call is a Currents request and each fundamentals call goes to

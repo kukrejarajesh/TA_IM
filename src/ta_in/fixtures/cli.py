@@ -2,7 +2,8 @@
 
 Needs real credentials (Kite: TA_KITE_API_KEY / TA_KITE_ACCESS_TOKEN, Currents:
 CURRENTS_API_KEY, read from the environment or .env) and a Python where pandas loads.
-Network access happens only here.
+Network access happens only here. The sources are wired by `ta_in.live.make_live_sources`, the same
+factory the live mode uses.
 """
 
 from __future__ import annotations
@@ -27,21 +28,10 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
 
     # Heavy and network-facing imports stay inside main so `--help` and the tests stay light.
+    from ta_in import live
     from ta_in.config.settings import load_settings
-    from ta_in.data import (
-        IdentityProvider,
-        PriceProvider,
-        kite_client_from_settings,
-        load_sector_map,
-        make_kite_fetcher,
-        make_kite_identity_resolver,
-    )
     from ta_in.fixtures.freeze import freeze_fixtures
     from ta_in.fixtures.models import FixtureExistsError, load_fixture_set
-    from ta_in.fundamentals import FundamentalsService
-    from ta_in.fundamentals.adapters import BFinanceFundamentalsProvider
-    from ta_in.news import NewsService
-    from ta_in.news.adapters import CurrentsNewsProvider
 
     # This command only needs data credentials, but Settings insists on an LLM key being present.
     os.environ.setdefault("ANTHROPIC_API_KEY", "freeze-fixtures-does-not-use-this")
@@ -51,28 +41,21 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     now = datetime.now(IST).replace(microsecond=0)
-    kite = kite_client_from_settings(settings)
-    identity = IdentityProvider(
-        make_kite_identity_resolver(kite, load_sector_map()), settings.data_cache_dir
-    )
-    prices = PriceProvider(make_kite_fetcher(kite), settings.data_cache_dir, source="kite")
-    currents_key = settings.currents_api_key.get_secret_value()
-
-    def company_name(ticker: str) -> str | None:
-        return identity.identity(ticker, as_of=now).name
+    try:
+        sources = live.make_live_sources(settings, clock=lambda: now)
+    except live.LiveConfigError as err:
+        print(str(err), file=sys.stderr)
+        return 2
 
     fixture_set = load_fixture_set(args.fixture_set)
     try:
         manifest = freeze_fixtures(
             fixture_set,
             args.out,
-            prices=prices,
-            identity=identity,
-            make_news_service=lambda sink: NewsService(
-                [CurrentsNewsProvider(currents_key, name_resolver=company_name)],
-                event_sink=sink,
-            ),
-            fundamentals=FundamentalsService([BFinanceFundamentalsProvider()]),
+            prices=sources.prices,
+            identity=sources.identity,
+            make_news_service=sources.make_news_service,
+            fundamentals=sources.fundamentals,
             now=now,
             sources={
                 "prices": "kite",
