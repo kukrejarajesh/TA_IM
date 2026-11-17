@@ -10,8 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from pipeline_sdk import ForbiddenSDK, PipelineSDK
-from test_live_provider import (
+from live_fakes import (
     FakeBFinance,
     FakeNewsProvider,
     FakePrices,
@@ -19,6 +18,7 @@ from test_live_provider import (
     _news_item,
     _sources,
 )
+from pipeline_sdk import ForbiddenSDK, PipelineSDK
 
 from ta_in.cli import _frozen_cell_as_of
 from ta_in.config import Settings

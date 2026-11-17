@@ -894,7 +894,7 @@
                     "Missing or expired credentials give a clear error naming each one, with no traceback and no secret",
                     "--live and --fixtures together are refused; --replay of a saved live run makes no network call"],
     "requirements": ["L1", "L3"], "size": "M", "test": "tests/cli/test_cli_live.py",
-    "depends_on": ["S8.1", "S8.2", "S5.1", "S5.2"], "passes": false},
+    "depends_on": ["S8.1", "S8.2", "S5.1", "S5.2"], "passes": true},
     {"id": "S8.4", "epic": "E8", "sprint": 13,
     "title": "Live preflight: ta-in check-live reports whether the Kite token, Currents key, bfinance and Anthropic key work, one line each",
     "acceptance": ["Each missing or invalid credential or unreachable source is named with its reason",
