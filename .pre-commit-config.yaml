@@ -4,7 +4,6 @@ repos:
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
-      - id: check-added-large-files
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.8.6
     hooks:
@@ -12,6 +11,12 @@ repos:
       - id: ruff-format
   - repo: local
     hooks:
+      # Same rule as pre-commit-hooks' check-added-large-files (500 KB), run through the repo's
+      # Python because that hook's executable is blocked by Windows Application Control.
+      - id: check-large-files
+        name: check for added large files
+        entry: uv run python scripts/check_large_files.py
+        language: system
       - id: mypy
         name: mypy
         entry: uv run mypy src
