@@ -75,18 +75,18 @@ def test_exports_pages_and_home(tmp_path: Path) -> None:
     make_run(results)
     exported = export.export_reports(results, out)
     assert exported == ["r1"]
-    run_dir = out / "runs" / "INFY-NS" / "2026-11-17" / "r1"
+    date_dir = out / "runs" / "INFY-NS" / "2026-11-17"
     for page in (
-        "index.md",
-        "market.md",
-        "news.md",
-        "fundamentals.md",
-        "investment-debate.md",
-        "research-plan.md",
-        "trader-proposal.md",
-        "risk-debate.md",
+        "r1.md",
+        "r1-market.md",
+        "r1-news.md",
+        "r1-fundamentals.md",
+        "r1-investment-debate.md",
+        "r1-research-plan.md",
+        "r1-trader-proposal.md",
+        "r1-risk-debate.md",
     ):
-        assert (run_dir / page).is_file(), page
+        assert (date_dir / page).is_file(), page
     assert (out / "index.md").is_file()
     assert (out / "about.md").is_file()
     home = (out / "index.md").read_text(encoding="utf-8")
@@ -115,16 +115,14 @@ def test_mm_ticker_page_path(tmp_path: Path) -> None:
     results, out = tmp_path / "results", tmp_path / "content"
     make_run(results, ticker="M&M.NS", run_id="mm1")
     export.export_reports(results, out)
-    assert (out / "runs" / "MM-NS" / "2026-11-17" / "mm1" / "index.md").is_file()
+    assert (out / "runs" / "MM-NS" / "2026-11-17" / "mm1.md").is_file()
 
 
 def test_frontmatter_and_h1_stripped(tmp_path: Path) -> None:
     results, out = tmp_path / "results", tmp_path / "content"
     make_run(results)
     export.export_reports(results, out)
-    page = (out / "runs" / "INFY-NS" / "2026-11-17" / "r1" / "market.md").read_text(
-        encoding="utf-8"
-    )
+    page = (out / "runs" / "INFY-NS" / "2026-11-17" / "r1-market.md").read_text(encoding="utf-8")
     assert page.startswith("---\n")
     head, _, body = page[4:].partition("\n---\n")
     assert "title:" in head and "tags:" in head and "date: 2026-11-17" in head
@@ -142,14 +140,15 @@ def test_gap_and_insufficient_tags(tmp_path: Path) -> None:
         },
     )
     export.export_reports(results, out)
-    run_dir = out / "runs" / "INFY-NS" / "2026-11-17" / "r1"
-    assert '"gap"' in (run_dir / "market.md").read_text(encoding="utf-8").split("\n---\n")[0]
+    run_dir = out / "runs" / "INFY-NS" / "2026-11-17"
+    assert '"gap"' in (run_dir / "r1-market.md").read_text(encoding="utf-8").split("\n---\n")[0]
     assert (
         '"insufficient-data"'
-        in (run_dir / "news.md").read_text(encoding="utf-8").split("\n---\n")[0]
+        in (run_dir / "r1-news.md").read_text(encoding="utf-8").split("\n---\n")[0]
     )
     assert (
-        '"gap"' not in (run_dir / "fundamentals.md").read_text(encoding="utf-8").split("\n---\n")[0]
+        '"gap"'
+        not in (run_dir / "r1-fundamentals.md").read_text(encoding="utf-8").split("\n---\n")[0]
     )
 
 
@@ -198,7 +197,37 @@ def test_run_page_shows_stats_and_claims(tmp_path: Path) -> None:
     results, out = tmp_path / "results", tmp_path / "content"
     make_run(results)
     export.export_reports(results, out)
-    page = (out / "runs" / "INFY-NS" / "2026-11-17" / "r1" / "index.md").read_text(encoding="utf-8")
+    page = (out / "runs" / "INFY-NS" / "2026-11-17" / "r1.md").read_text(encoding="utf-8")
     assert "$0.1000" in page
     assert "3 of 4" in page
-    assert "[Market report](market)" in page
+    assert "[Market report](r1-market)" in page
+
+
+def _internal_links(text: str) -> list[str]:
+    import re
+
+    return [
+        t
+        for t in re.findall(r"\]\(([^)]+)\)", text)
+        if not t.startswith(("#", "http", "/")) and "://" not in t
+    ]
+
+
+def test_no_folder_index_pages_and_links_resolve_beside_the_page(tmp_path: Path) -> None:
+    """Regression: a run page that is a folder's index.md loses its folder when the browser
+    address has no trailing slash, so its relative links 404 on GitHub Pages. Run pages
+    are therefore plain files, and every link between them stays in the same folder."""
+    results, out = tmp_path / "results", tmp_path / "content"
+    make_run(results)
+    export.export_reports(results, out)
+    runs = out / "runs"
+    assert not list(runs.rglob("index.md"))
+    assert [p for p in runs.rglob("*") if p.is_dir() and p.parent.name.startswith("20")] == []
+    for page in runs.rglob("*.md"):
+        for link in _internal_links(page.read_text(encoding="utf-8")):
+            assert "/" not in link, (page.name, link)
+            assert (page.parent / f"{link}.md").is_file(), (page.name, link)
+    home = (out / "index.md").read_text(encoding="utf-8")
+    for link in _internal_links(home):
+        if link.startswith("runs/"):
+            assert (out / f"{link}.md").is_file(), link

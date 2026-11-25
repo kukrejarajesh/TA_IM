@@ -20,6 +20,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+# Run pages are plain files, never a folder's index.md: Quartz links from an index page assume a
+# trailing slash in the address, and without it (the SPA drops it) every link 404s.
 # (source file in the run folder, published page name, page title)
 REPORT_PAGES: list[tuple[str, str, str]] = [
     ("market_report.md", "market", "Market report"),
@@ -200,9 +202,9 @@ def _run_pages(run: RunSource) -> dict[str, str]:
     body.append("## Reports\n")
     for src_name, page, label in REPORT_PAGES:
         if (run.path / src_name).is_file():
-            body.append(f"- [{label}]({page})")
+            body.append(f"- [{label}]({run.run_id}-{page})")
 
-    pages["index.md"] = (
+    pages[f"{run.run_id}.md"] = (
         frontmatter(
             {
                 "title": title,
@@ -227,7 +229,7 @@ def _run_pages(run: RunSource) -> dict[str, str]:
         if not src.is_file():
             continue
         text = _strip_h1(src.read_text(encoding="utf-8"))
-        pages[f"{page}.md"] = (
+        pages[f"{run.run_id}-{page}.md"] = (
             frontmatter(
                 {
                     "title": f"{label}: {run.ticker} {run.date} ({run.run_id})",
@@ -235,7 +237,7 @@ def _run_pages(run: RunSource) -> dict[str, str]:
                     "tags": _report_tags(base_tags, text),
                 }
             )
-            + f"[Back to the run summary](index)\n\n{DISCLAIMER}\n\n"
+            + f"[Back to the run summary]({run.run_id})\n\n{DISCLAIMER}\n\n"
             + text
         )
     return pages
@@ -256,9 +258,11 @@ def _read_frontmatter(path: Path) -> dict[str, Any]:
 
 def _write_home(out_dir: Path) -> None:
     rows: list[dict[str, Any]] = []
-    for index in sorted((out_dir / "runs").glob("*/*/*/index.md")):
-        fm = _read_frontmatter(index)
-        fm["_link"] = index.parent.relative_to(out_dir).as_posix()
+    for page in sorted((out_dir / "runs").glob("*/*/*.md")):
+        fm = _read_frontmatter(page)
+        if "run_id" not in fm:
+            continue  # a report page, not a run summary
+        fm["_link"] = page.with_suffix("").relative_to(out_dir).as_posix()
         rows.append(fm)
     rows.sort(key=lambda r: (str(r.get("date")), str(r.get("run_id"))), reverse=True)
     total = sum(float(r.get("cost_usd", 0.0)) for r in rows)
@@ -297,7 +301,7 @@ def export_reports(results_dir: Path, out_dir: Path, run_ids: list[str] | None =
     # Build and scan everything first so a leak writes nothing at all.
     planned: dict[Path, str] = {}
     for run in runs:
-        run_out = out_dir / "runs" / ticker_slug(run.ticker) / run.date / run.run_id
+        run_out = out_dir / "runs" / ticker_slug(run.ticker) / run.date
         for name, text in _run_pages(run).items():
             _check_secrets(f"{run.run_id}/{name}", text)
             planned[run_out / name] = text
