@@ -13,3 +13,7 @@ traces/
 docs/
 
 local_fixtures/
+
+# Quartz site build
+_quartz/
+site/node_modules/
